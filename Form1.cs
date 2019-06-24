@@ -38,9 +38,9 @@ namespace LinkReplacer {
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            using (var reader = new StreamReader("Sites.csv"))
+            using (var reader = new StreamReader("Sites.csv")) 
             {
-                while (!reader.EndOfStream)
+                while (!reader.EndOfStream) //Initializes the dropdown list of sites for SharePoint and DNATool
                 {
                     var line = reader.ReadLine().Split(','); //Name,SiteID,SiteAddress
 
@@ -50,6 +50,7 @@ namespace LinkReplacer {
                     comboDNATool.Items.Add(line[1] + ": " + line[0]);
                 }
             }
+            //Initialization
             openFileDialog1.FileName = String.Empty;
             folderBrowserDialog1.SelectedPath = Directory.GetCurrentDirectory();
             textFolder.Text = Directory.GetCurrentDirectory();
@@ -58,21 +59,21 @@ namespace LinkReplacer {
             Main.UnmapSharePoint();
         }
 
-        private void RadioSharePoint_CheckedChanged(object sender, EventArgs e)
+        private void RadioSharePoint_CheckedChanged(object sender, EventArgs e) //Enables the SharePoint panel
         {
             panelFiles.Enabled = false;
             panelFolder.Enabled = false;
             panelSharepoint.Enabled = true;
         }
 
-        private void RadioFiles_CheckedChanged(object sender, EventArgs e)
+        private void RadioFiles_CheckedChanged(object sender, EventArgs e) //Enables the Files panel
         {
             panelSharepoint.Enabled = false;
             panelFolder.Enabled = false;
             panelFiles.Enabled = true;
         }
 
-        private void RadioFolder_CheckedChanged(object sender, EventArgs e)
+        private void RadioFolder_CheckedChanged(object sender, EventArgs e) //Enables the Folder panel
         {
             panelSharepoint.Enabled = false;
             panelFiles.Enabled = false;
@@ -82,8 +83,8 @@ namespace LinkReplacer {
         private void ComboSite_SelectedIndexChanged(object sender, EventArgs e) //Getting files from SharePoint
         {
             fileList = Main.ReadSharePoint(addressList[comboSite.SelectedIndex]);
-            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count;
-            comboDNATool.SelectedIndex = comboSite.SelectedIndex;
+            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
+            comboDNATool.SelectedIndex = comboSite.SelectedIndex; //Matches DNATool combobox selection
         }
 
         private void ButtonFile_Click(object sender, EventArgs e) //Selecting individual files
@@ -91,7 +92,7 @@ namespace LinkReplacer {
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 fileList = Main.ReadFiles(openFileDialog1.FileNames);
-                labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count;
+                labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
             }
         }
 
@@ -107,10 +108,10 @@ namespace LinkReplacer {
         private void TextFolder_LostFocus(object sender, EventArgs e) //Grabs all files from selected folder
         {
             fileList = Main.ReadFolder(textFolder.Text);
-            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count;
+            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
         }
 
-        private void ButtonOutputFolder_Click(object sender, EventArgs e)
+        private void ButtonOutputFolder_Click(object sender, EventArgs e) //Displays the Folder Browser Dialog
         {
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
@@ -118,7 +119,7 @@ namespace LinkReplacer {
             }
         }
 
-        private void ButtonLinkReplacer_Click(object sender, EventArgs e)
+        private void ButtonLinkReplacer_Click(object sender, EventArgs e) //Finds and replaces matching strings in PDF hyperlinks
         {
             if (fileList.Count == 0)
             {
@@ -132,8 +133,9 @@ namespace LinkReplacer {
 
             string find = textFindString.Text;
             string replace = textReplaceString.Text;
-            Directory.CreateDirectory(textOutputFolder.Text);
+            Directory.CreateDirectory(textOutputFolder.Text); //Output folder for the new PDFs
 
+            //Initializes progress bar and log
             progressBar1.Value = 0;
             progressBar1.Maximum = fileList.Count;
             ProgressBarDrawString("0%");
@@ -147,20 +149,22 @@ namespace LinkReplacer {
 
                 textLog.AppendText(fileName + " - "); //Separate refresh in case it gets stuck reading the PDF
                 textLog.Refresh();
-                textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace) + "\n");
+                textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace) + "\n"); //Replaces links in current PDF and outputs count
                 textLog.Refresh();
-                textLog.ScrollToCaret();
+                textLog.ScrollToCaret(); //Scroll to bottom
 
+                //Progresses the progress bar
                 ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
                 ProgressBarDrawString(i * 100 / fileList.Count + "%");
             }
             textLog.AppendText("Done! :)");
             textLog.Refresh();
             ProgressBarDrawString("100% Done! :)");
-            Main.UnmapSharePoint();
+
+            Main.UnmapSharePoint(); //Unmaps B: drive in case files were grabbed from SharePoint
         }
 
-        private void ButtonDNATool_Click(object sender, EventArgs e)
+        private void ButtonDNATool_Click(object sender, EventArgs e) //Generates a CSV file of all the assets in the PDFs
         {
             int index = comboDNATool.SelectedIndex;
             if (fileList.Count == 0)
@@ -174,9 +178,10 @@ namespace LinkReplacer {
             }
 
 
-            Directory.CreateDirectory(textOutputFolder.Text);
+            Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
             StreamWriter writer = new StreamWriter(textOutputFolder.Text + @"\" + idList[index] + ".csv");
 
+            //Initializes progress bar and log
             progressBar1.Value = 0;
             progressBar1.Maximum = fileList.Count;
             ProgressBarDrawString("0%");
@@ -189,10 +194,11 @@ namespace LinkReplacer {
 
                 textLog.AppendText(fileName + "\n"); //Separate refresh in case it gets stuck reading the PDF
                 textLog.Refresh();
-                textLog.AppendText(Main.DNATool(filePath, fileName, addressList[index], writer));
+                textLog.AppendText(Main.DNATool(filePath, fileName, addressList[index], writer)); //Writes found assets to CSV and outputs any errors
                 textLog.Refresh();
-                textLog.ScrollToCaret();
+                textLog.ScrollToCaret(); //Scroll to bottom
 
+                //Progresses the progress bar
                 ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
                 ProgressBarDrawString(i * 100 / fileList.Count + "%");
             }
@@ -201,7 +207,7 @@ namespace LinkReplacer {
             ProgressBarDrawString("100% Done! :)");
 
             writer.Close();
-            Main.UnmapSharePoint();
+            Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
         }
     }
 }
