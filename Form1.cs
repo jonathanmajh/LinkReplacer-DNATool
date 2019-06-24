@@ -1,0 +1,207 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+using System.IO;
+
+namespace LinkReplacer {
+    public partial class Form1 : Form
+    {
+        List<string> idList = new List<string>();
+        List<string> addressList = new List<string>();
+        List<string> fileList = new List<string>();
+
+        private void ProgressBarDrawString(string value) //Draws the percentage on the progressbar
+        {
+            progressBar1.Refresh();
+            progressBar1.CreateGraphics().DrawString(value, new Font(FontFamily.GenericSansSerif, (float)7.8, FontStyle.Regular), Brushes.Black, new PointF(progressBar1.Width / 2 - 10, progressBar1.Height / 2 - 7));
+        }
+
+        private void ProgressBarNoAnimation(int value) //Prevent the progressbar from lagging behind, disables the animation by going backwards
+        {
+            if (value == progressBar1.Maximum)
+            {
+                progressBar1.Maximum = value + 1;
+                progressBar1.Value = value + 1;
+                progressBar1.Maximum = value;
+            } else
+            {
+                progressBar1.Value = value + 1;
+            }
+            progressBar1.Value = value;
+        }
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            using (var reader = new StreamReader("Sites.csv"))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine().Split(','); //Name,SiteID,SiteAddress
+
+                    idList.Add(line[1]);
+                    addressList.Add(line[2]);
+                    comboSite.Items.Add(line[1] + ": " + line[0]);
+                    comboDNATool.Items.Add(line[1] + ": " + line[0]);
+                }
+            }
+            openFileDialog1.FileName = String.Empty;
+            folderBrowserDialog1.SelectedPath = Directory.GetCurrentDirectory();
+            textFolder.Text = Directory.GetCurrentDirectory();
+            textOutputFolder.Text = Directory.GetCurrentDirectory() + @"\Output";
+            radioSharePoint.Checked = true;
+            Main.UnmapSharePoint();
+        }
+
+        private void RadioSharePoint_CheckedChanged(object sender, EventArgs e)
+        {
+            panelFiles.Enabled = false;
+            panelFolder.Enabled = false;
+            panelSharepoint.Enabled = true;
+        }
+
+        private void RadioFiles_CheckedChanged(object sender, EventArgs e)
+        {
+            panelSharepoint.Enabled = false;
+            panelFolder.Enabled = false;
+            panelFiles.Enabled = true;
+        }
+
+        private void RadioFolder_CheckedChanged(object sender, EventArgs e)
+        {
+            panelSharepoint.Enabled = false;
+            panelFiles.Enabled = false;
+            panelFolder.Enabled = true;
+        }
+
+        private void ComboSite_SelectedIndexChanged(object sender, EventArgs e) //Getting files from SharePoint
+        {
+            fileList = Main.ReadSharePoint(addressList[comboSite.SelectedIndex]);
+            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count;
+            comboDNATool.SelectedIndex = comboSite.SelectedIndex;
+        }
+
+        private void ButtonFile_Click(object sender, EventArgs e) //Selecting individual files
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                fileList = Main.ReadFiles(openFileDialog1.FileNames);
+                labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count;
+            }
+        }
+
+        private void ButtonFolder_Click(object sender, EventArgs e) //Selecting folder
+        {
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                textFolder.Text = folderBrowserDialog1.SelectedPath;
+                TextFolder_LostFocus(sender, e); //Update folder
+            }
+        }
+
+        private void TextFolder_LostFocus(object sender, EventArgs e) //Grabs all files from selected folder
+        {
+            fileList = Main.ReadFolder(textFolder.Text);
+            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count;
+        }
+
+        private void ButtonOutputFolder_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                textOutputFolder.Text = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        private void ButtonLinkReplacer_Click(object sender, EventArgs e)
+        {
+            if (fileList.Count == 0)
+            {
+                MessageBox.Show("No files found!", "ERROR");
+                return;
+            } else if (textFindString.Text.Equals(""))
+            {
+                MessageBox.Show("Please input a string to find!", "ERROR");
+                return;
+            }
+
+            string find = textFindString.Text;
+            string replace = textReplaceString.Text;
+            Directory.CreateDirectory(textOutputFolder.Text);
+
+            progressBar1.Value = 0;
+            progressBar1.Maximum = fileList.Count;
+            ProgressBarDrawString("0%");
+            textLog.Clear();
+
+            for (int i = 0; i < fileList.Count; i++)
+            {
+                string filePath = fileList[i];
+                string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
+                string fileOutputPath = textOutputFolder.Text + @"\" + fileName;
+
+                textLog.AppendText(fileName + " - "); //Separate refresh in case it gets stuck reading the PDF
+                textLog.Refresh();
+                textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace) + "\n");
+                textLog.Refresh();
+                textLog.ScrollToCaret();
+
+                ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
+                ProgressBarDrawString(i * 100 / fileList.Count + "%");
+            }
+            textLog.AppendText("Done! :)");
+            textLog.Refresh();
+            ProgressBarDrawString("100% Done! :)");
+            Main.UnmapSharePoint();
+        }
+
+        private void ButtonDNATool_Click(object sender, EventArgs e)
+        {
+            int index = comboDNATool.SelectedIndex;
+            if (fileList.Count == 0)
+            {
+                MessageBox.Show("No files found!", "ERROR");
+                return;
+            } else if (index == -1)
+            {
+                MessageBox.Show("Please choose a site!", "ERROR");
+                return;
+            }
+
+
+            Directory.CreateDirectory(textOutputFolder.Text);
+            StreamWriter writer = new StreamWriter(textOutputFolder.Text + @"\" + idList[index] + ".csv");
+
+            progressBar1.Value = 0;
+            progressBar1.Maximum = fileList.Count;
+            ProgressBarDrawString("0%");
+            textLog.Clear();
+
+            for (int i = 0; i < fileList.Count; i++)
+            {
+                string filePath = fileList[i];
+                string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
+
+                textLog.AppendText(fileName + "\n"); //Separate refresh in case it gets stuck reading the PDF
+                textLog.Refresh();
+                textLog.AppendText(Main.DNATool(filePath, fileName, addressList[index], writer));
+                textLog.Refresh();
+                textLog.ScrollToCaret();
+
+                ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
+                ProgressBarDrawString(i * 100 / fileList.Count + "%");
+            }
+            textLog.AppendText("Done! :)");
+            textLog.Refresh();
+            ProgressBarDrawString("100% Done! :)");
+
+            writer.Close();
+            Main.UnmapSharePoint();
+        }
+    }
+}
