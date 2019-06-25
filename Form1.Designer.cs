@@ -84,9 +84,9 @@
             this.radioSharePoint.AutoSize = true;
             this.radioSharePoint.Location = new System.Drawing.Point(12, 12);
             this.radioSharePoint.Name = "radioSharePoint";
-            this.radioSharePoint.Size = new System.Drawing.Size(196, 21);
+            this.radioSharePoint.Size = new System.Drawing.Size(465, 21);
             this.radioSharePoint.TabIndex = 2;
-            this.radioSharePoint.Text = "Get PDFs from SharePoint";
+            this.radioSharePoint.Text = "Get PDFs from SharePoint (MUST BE LOGGED INTO SHAREPOINT)";
             this.radioSharePoint.UseVisualStyleBackColor = true;
             this.radioSharePoint.CheckedChanged += new System.EventHandler(this.RadioSharePoint_CheckedChanged);
             // 
