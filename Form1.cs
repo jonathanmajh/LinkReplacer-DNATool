@@ -149,7 +149,14 @@ namespace LinkReplacer {
 
                 textLog.AppendText(fileName + " - "); //Separate refresh in case it gets stuck reading the PDF
                 textLog.Refresh();
-                textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace) + "\n"); //Replaces links in current PDF and outputs count
+                try
+                {
+                    textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace) + "\n"); //Replaces links in current PDF and outputs count
+                } catch
+                {
+                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                }
+                
                 textLog.Refresh();
                 textLog.ScrollToCaret(); //Scroll to bottom
 
@@ -194,7 +201,14 @@ namespace LinkReplacer {
 
                 textLog.AppendText(fileName + "\n"); //Separate refresh in case it gets stuck reading the PDF
                 textLog.Refresh();
-                textLog.AppendText(Main.DNATool(filePath, fileName, addressList[index], writer)); //Writes found assets to CSV and outputs any errors
+                try
+                {
+                    textLog.AppendText(Main.DNATool(filePath, fileName, addressList[index], writer)); //Writes found assets to CSV and outputs any errors
+                } catch
+                {
+                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                }
+                
                 textLog.Refresh();
                 textLog.ScrollToCaret(); //Scroll to bottom
 

@@ -68,7 +68,7 @@ namespace LinkReplacer
 
                 if (annotArray == null) //If there are no annotations on that page
                 {
-                    error += "ERROR: No annotaions found (Page " + page + ")\n";
+                    error += "WARNING: No annotaions found (Page " + page + ")\n";
                     continue;
                 }
 
