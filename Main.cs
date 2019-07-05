@@ -138,7 +138,50 @@ namespace LinkReplacer
             stamper.Close();
             reader.Close();
 
-            return replaceNum + " occurance(s) found";
+            return " - " + replaceNum + " occurance(s) found";
+        }
+
+        public static string LinkGrabber(string filePath, string fileName, StreamWriter writer) //Writes found links to CSV and outputs count
+        {
+            int foundLinks = 0; //Number of links found
+            PdfReader reader = new PdfReader(filePath);
+
+            for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
+            {
+                PdfDictionary pageDict = reader.GetPageN(page); //Honestly not sure how this works...
+                PdfArray annotArray = pageDict.GetAsArray(PdfName.ANNOTS);
+
+                if (annotArray == null) //If there are no annotations on that page
+                {
+                    continue;
+                }
+
+                foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
+                {
+                    PdfDictionary annotDict = (PdfDictionary)PdfReader.GetPdfObject(annot);
+
+                    if (annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.LINK) || annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.WIDGET)) //If the annotation is a hyperlink
+                    {
+                        PdfDictionary annotAction = (PdfDictionary)PdfReader.GetPdfObject(annotDict.Get(PdfName.A));
+
+                        if (annotAction.Get(PdfName.S).Equals(PdfName.URI))
+                        {
+                            string foundURL = annotAction.GetAsString(PdfName.URI).ToString();
+
+                            try
+                            {
+                                if (foundURL.Substring(0, 4).Equals("http")) //If it's an actual link
+                                {
+                                    writer.WriteLine("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV file
+                                    foundLinks++;
+                                }
+                            }
+                            catch {} //Intentionally left blank
+                        }
+                    }
+                }
+            }
+            return " - " + foundLinks + " link(s) found\n";
         }
     }
 }

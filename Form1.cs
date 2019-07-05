@@ -147,7 +147,7 @@ namespace LinkReplacer {
                 string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
                 string fileOutputPath = textOutputFolder.Text + @"\" + fileName;
 
-                textLog.AppendText(fileName + " - "); //Separate refresh in case it gets stuck reading the PDF
+                textLog.AppendText(fileName); //Separate refresh in case it gets stuck reading the PDF
                 textLog.Refresh();
                 try
                 {
@@ -209,6 +209,61 @@ namespace LinkReplacer {
                     textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
                 }
                 
+                textLog.Refresh();
+                textLog.ScrollToCaret(); //Scroll to bottom
+
+                //Progresses the progress bar
+                ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
+                ProgressBarDrawString(i * 100 / fileList.Count + "%");
+            }
+            textLog.AppendText("Done! :)");
+            textLog.Refresh();
+            ProgressBarDrawString("100% Done! :)");
+
+            writer.Close();
+            Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
+        }
+
+        private void ButtonLinkGrabber_Click(object sender, EventArgs e) //Grabs every hyperlink from the selected PDFs
+        {
+            int index = comboDNATool.SelectedIndex;
+            if (fileList.Count == 0)
+            {
+                MessageBox.Show("No files found!", "ERROR");
+                return;
+            }
+            else if (index == -1)
+            {
+                MessageBox.Show("Please choose a site!", "ERROR");
+                return;
+            }
+
+
+            Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
+            StreamWriter writer = new StreamWriter(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv");
+
+            //Initializes progress bar and log
+            progressBar1.Value = 0;
+            progressBar1.Maximum = fileList.Count;
+            ProgressBarDrawString("0%");
+            textLog.Clear();
+
+            for (int i = 0; i < fileList.Count; i++)
+            {
+                string filePath = fileList[i];
+                string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
+
+                textLog.AppendText(fileName); //Separate refresh in case it gets stuck reading the PDF
+                textLog.Refresh();
+                try
+                {
+                    textLog.AppendText(Main.LinkGrabber(filePath, fileName, writer)); //Writes found links to CSV
+                }
+                catch
+                {
+                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                }
+
                 textLog.Refresh();
                 textLog.ScrollToCaret(); //Scroll to bottom
 

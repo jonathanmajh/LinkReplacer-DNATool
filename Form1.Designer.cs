@@ -59,6 +59,7 @@
             this.textOutputFolder = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textLog = new System.Windows.Forms.RichTextBox();
+            this.buttonLinkGrabber = new System.Windows.Forms.Button();
             this.panelSharepoint.SuspendLayout();
             this.panelFiles.SuspendLayout();
             this.panelFolder.SuspendLayout();
@@ -282,6 +283,7 @@
             // tabDNATool
             // 
             this.tabDNATool.BackColor = System.Drawing.SystemColors.Control;
+            this.tabDNATool.Controls.Add(this.buttonLinkGrabber);
             this.tabDNATool.Controls.Add(this.label6);
             this.tabDNATool.Controls.Add(this.comboDNATool);
             this.tabDNATool.Controls.Add(this.buttonDNATool);
@@ -295,7 +297,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(174, 43);
+            this.label6.Location = new System.Drawing.Point(111, 43);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(36, 17);
             this.label6.TabIndex = 2;
@@ -304,14 +306,14 @@
             // comboDNATool
             // 
             this.comboDNATool.FormattingEnabled = true;
-            this.comboDNATool.Location = new System.Drawing.Point(217, 40);
+            this.comboDNATool.Location = new System.Drawing.Point(154, 40);
             this.comboDNATool.Name = "comboDNATool";
             this.comboDNATool.Size = new System.Drawing.Size(223, 24);
             this.comboDNATool.TabIndex = 1;
             // 
             // buttonDNATool
             // 
-            this.buttonDNATool.Location = new System.Drawing.Point(446, 38);
+            this.buttonDNATool.Location = new System.Drawing.Point(383, 38);
             this.buttonDNATool.Name = "buttonDNATool";
             this.buttonDNATool.Size = new System.Drawing.Size(130, 29);
             this.buttonDNATool.TabIndex = 0;
@@ -354,6 +356,16 @@
             this.textLog.Size = new System.Drawing.Size(770, 135);
             this.textLog.TabIndex = 11;
             this.textLog.Text = "";
+            // 
+            // buttonLinkGrabber
+            // 
+            this.buttonLinkGrabber.Location = new System.Drawing.Point(519, 38);
+            this.buttonLinkGrabber.Name = "buttonLinkGrabber";
+            this.buttonLinkGrabber.Size = new System.Drawing.Size(130, 29);
+            this.buttonLinkGrabber.TabIndex = 3;
+            this.buttonLinkGrabber.Text = "Grab Links";
+            this.buttonLinkGrabber.UseVisualStyleBackColor = true;
+            this.buttonLinkGrabber.Click += new System.EventHandler(this.ButtonLinkGrabber_Click);
             // 
             // Form1
             // 
@@ -423,6 +435,7 @@
         private System.Windows.Forms.RichTextBox textLog;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox comboDNATool;
+        private System.Windows.Forms.Button buttonLinkGrabber;
     }
 }
 
