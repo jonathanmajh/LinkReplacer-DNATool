@@ -52,6 +52,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.tabDNATool = new System.Windows.Forms.TabPage();
+            this.buttonLinkGrabber = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.comboDNATool = new System.Windows.Forms.ComboBox();
             this.buttonDNATool = new System.Windows.Forms.Button();
@@ -59,7 +60,9 @@
             this.textOutputFolder = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textLog = new System.Windows.Forms.RichTextBox();
-            this.buttonLinkGrabber = new System.Windows.Forms.Button();
+            this.radioFindReplace = new System.Windows.Forms.RadioButton();
+            this.radioAddStart = new System.Windows.Forms.RadioButton();
+            this.radioAddEnd = new System.Windows.Forms.RadioButton();
             this.panelSharepoint.SuspendLayout();
             this.panelFiles.SuspendLayout();
             this.panelFolder.SuspendLayout();
@@ -207,7 +210,7 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(16, 418);
+            this.progressBar1.Location = new System.Drawing.Point(16, 457);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(770, 25);
             this.progressBar1.Step = 1;
@@ -220,12 +223,15 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 282);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(778, 128);
+            this.tabControl1.Size = new System.Drawing.Size(778, 169);
             this.tabControl1.TabIndex = 7;
             // 
             // tabLinkReplacer
             // 
             this.tabLinkReplacer.BackColor = System.Drawing.SystemColors.Control;
+            this.tabLinkReplacer.Controls.Add(this.radioAddEnd);
+            this.tabLinkReplacer.Controls.Add(this.radioAddStart);
+            this.tabLinkReplacer.Controls.Add(this.radioFindReplace);
             this.tabLinkReplacer.Controls.Add(this.buttonLinkReplacer);
             this.tabLinkReplacer.Controls.Add(this.textReplaceString);
             this.tabLinkReplacer.Controls.Add(this.textFindString);
@@ -234,30 +240,30 @@
             this.tabLinkReplacer.Location = new System.Drawing.Point(4, 25);
             this.tabLinkReplacer.Name = "tabLinkReplacer";
             this.tabLinkReplacer.Padding = new System.Windows.Forms.Padding(3);
-            this.tabLinkReplacer.Size = new System.Drawing.Size(770, 99);
+            this.tabLinkReplacer.Size = new System.Drawing.Size(770, 140);
             this.tabLinkReplacer.TabIndex = 0;
             this.tabLinkReplacer.Text = "Link Replacer";
             // 
             // buttonLinkReplacer
             // 
-            this.buttonLinkReplacer.Location = new System.Drawing.Point(324, 64);
+            this.buttonLinkReplacer.Location = new System.Drawing.Point(324, 103);
             this.buttonLinkReplacer.Name = "buttonLinkReplacer";
-            this.buttonLinkReplacer.Size = new System.Drawing.Size(119, 29);
+            this.buttonLinkReplacer.Size = new System.Drawing.Size(120, 29);
             this.buttonLinkReplacer.TabIndex = 4;
-            this.buttonLinkReplacer.Text = "Replace";
+            this.buttonLinkReplacer.Text = "Add/Replace";
             this.buttonLinkReplacer.UseVisualStyleBackColor = true;
             this.buttonLinkReplacer.Click += new System.EventHandler(this.ButtonLinkReplacer_Click);
             // 
             // textReplaceString
             // 
-            this.textReplaceString.Location = new System.Drawing.Point(150, 35);
+            this.textReplaceString.Location = new System.Drawing.Point(150, 75);
             this.textReplaceString.Name = "textReplaceString";
             this.textReplaceString.Size = new System.Drawing.Size(614, 22);
             this.textReplaceString.TabIndex = 3;
             // 
             // textFindString
             // 
-            this.textFindString.Location = new System.Drawing.Point(150, 5);
+            this.textFindString.Location = new System.Drawing.Point(150, 45);
             this.textFindString.Name = "textFindString";
             this.textFindString.Size = new System.Drawing.Size(614, 22);
             this.textFindString.TabIndex = 2;
@@ -265,16 +271,16 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 38);
+            this.label5.Location = new System.Drawing.Point(6, 78);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(144, 17);
             this.label5.TabIndex = 1;
-            this.label5.Text = "String to replace with:";
+            this.label5.Text = "String to add/replace:";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(57, 7);
+            this.label4.Location = new System.Drawing.Point(57, 47);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(92, 17);
             this.label4.TabIndex = 0;
@@ -290,9 +296,19 @@
             this.tabDNATool.Location = new System.Drawing.Point(4, 25);
             this.tabDNATool.Name = "tabDNATool";
             this.tabDNATool.Padding = new System.Windows.Forms.Padding(3);
-            this.tabDNATool.Size = new System.Drawing.Size(770, 99);
+            this.tabDNATool.Size = new System.Drawing.Size(770, 140);
             this.tabDNATool.TabIndex = 1;
             this.tabDNATool.Text = "DNA Tool";
+            // 
+            // buttonLinkGrabber
+            // 
+            this.buttonLinkGrabber.Location = new System.Drawing.Point(519, 38);
+            this.buttonLinkGrabber.Name = "buttonLinkGrabber";
+            this.buttonLinkGrabber.Size = new System.Drawing.Size(130, 29);
+            this.buttonLinkGrabber.TabIndex = 3;
+            this.buttonLinkGrabber.Text = "Grab Links";
+            this.buttonLinkGrabber.UseVisualStyleBackColor = true;
+            this.buttonLinkGrabber.Click += new System.EventHandler(this.ButtonLinkGrabber_Click);
             // 
             // label6
             // 
@@ -349,7 +365,7 @@
             // 
             // textLog
             // 
-            this.textLog.Location = new System.Drawing.Point(16, 454);
+            this.textLog.Location = new System.Drawing.Point(16, 493);
             this.textLog.Name = "textLog";
             this.textLog.ReadOnly = true;
             this.textLog.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
@@ -357,21 +373,45 @@
             this.textLog.TabIndex = 11;
             this.textLog.Text = "";
             // 
-            // buttonLinkGrabber
+            // radioFindReplace
             // 
-            this.buttonLinkGrabber.Location = new System.Drawing.Point(519, 38);
-            this.buttonLinkGrabber.Name = "buttonLinkGrabber";
-            this.buttonLinkGrabber.Size = new System.Drawing.Size(130, 29);
-            this.buttonLinkGrabber.TabIndex = 3;
-            this.buttonLinkGrabber.Text = "Grab Links";
-            this.buttonLinkGrabber.UseVisualStyleBackColor = true;
-            this.buttonLinkGrabber.Click += new System.EventHandler(this.ButtonLinkGrabber_Click);
+            this.radioFindReplace.AutoSize = true;
+            this.radioFindReplace.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.radioFindReplace.Location = new System.Drawing.Point(75, 14);
+            this.radioFindReplace.Name = "radioFindReplace";
+            this.radioFindReplace.Size = new System.Drawing.Size(135, 21);
+            this.radioFindReplace.TabIndex = 5;
+            this.radioFindReplace.TabStop = true;
+            this.radioFindReplace.Text = "Find and replace";
+            this.radioFindReplace.UseVisualStyleBackColor = true;
+            // 
+            // radioAddStart
+            // 
+            this.radioAddStart.AutoSize = true;
+            this.radioAddStart.Location = new System.Drawing.Point(331, 13);
+            this.radioAddStart.Name = "radioAddStart";
+            this.radioAddStart.Size = new System.Drawing.Size(102, 21);
+            this.radioAddStart.TabIndex = 6;
+            this.radioAddStart.TabStop = true;
+            this.radioAddStart.Text = "Add to start";
+            this.radioAddStart.UseVisualStyleBackColor = true;
+            // 
+            // radioAddEnd
+            // 
+            this.radioAddEnd.AutoSize = true;
+            this.radioAddEnd.Location = new System.Drawing.Point(583, 13);
+            this.radioAddEnd.Name = "radioAddEnd";
+            this.radioAddEnd.Size = new System.Drawing.Size(98, 21);
+            this.radioAddEnd.TabIndex = 7;
+            this.radioAddEnd.TabStop = true;
+            this.radioAddEnd.Text = "Add to end";
+            this.radioAddEnd.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 601);
+            this.ClientSize = new System.Drawing.Size(800, 644);
             this.Controls.Add(this.textLog);
             this.Controls.Add(this.buttonOutputFolder);
             this.Controls.Add(this.textOutputFolder);
@@ -436,6 +476,9 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ComboBox comboDNATool;
         private System.Windows.Forms.Button buttonLinkGrabber;
+        private System.Windows.Forms.RadioButton radioAddEnd;
+        private System.Windows.Forms.RadioButton radioAddStart;
+        private System.Windows.Forms.RadioButton radioFindReplace;
     }
 }
 

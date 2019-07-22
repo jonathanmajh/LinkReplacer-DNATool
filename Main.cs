@@ -97,7 +97,7 @@ namespace LinkReplacer
             return error;
         }
 
-        public static string LinkReplacer(string filePath, string fileOutputPath, string find, string replace) //Replaces links in current PDF and outputs count
+        public static string LinkReplacer(string filePath, string fileOutputPath, string find, string replace, int mode) //Replaces links in current PDF and outputs count
         {
             int replaceNum = 0; //Number of replaced instances
             PdfReader reader = new PdfReader(filePath);
@@ -127,9 +127,25 @@ namespace LinkReplacer
 
                             if (foundURL.IndexOf(find) != -1) //If the string exists
                             {
-                                replaceNum += foundURL.Split(new string[] { find }, System.StringSplitOptions.RemoveEmptyEntries).Length - 1; //Counts number of instances
-                                string newURL = foundURL.Replace(find, replace);
-                                annotAction.Put(PdfName.URI, new PdfString(newURL)); //Replaces the old URL with the new URL
+                                string newURL;
+                                switch (mode)
+                                {
+                                    case 0: //Find-replace all
+                                        replaceNum += foundURL.Split(new string[] { find }, System.StringSplitOptions.RemoveEmptyEntries).Length - 1; //Counts number of instances
+                                        newURL = foundURL.Replace(find, replace);
+                                        annotAction.Put(PdfName.URI, new PdfString(newURL)); //Replaces the old URL with the new URL
+                                        break;
+                                    case 1: //Add to start of strings that contain the find string
+                                        replaceNum++;
+                                        newURL = replace + foundURL;
+                                        annotAction.Put(PdfName.URI, new PdfString(newURL)); //Replaces the old URL with the new URL
+                                        break;
+                                    case 2: //Add to end of strings that contain the find string
+                                        replaceNum++;
+                                        newURL = foundURL + replace;
+                                        annotAction.Put(PdfName.URI, new PdfString(newURL)); //Replaces the old URL with the new URL
+                                        break;
+                                }
                             }
                         }
                     }

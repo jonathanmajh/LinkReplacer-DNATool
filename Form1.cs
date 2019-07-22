@@ -56,6 +56,7 @@ namespace LinkReplacer {
             textFolder.Text = Directory.GetCurrentDirectory();
             textOutputFolder.Text = Directory.GetCurrentDirectory() + @"\Output";
             radioSharePoint.Checked = true;
+            radioFindReplace.Checked = true;
             Main.UnmapSharePoint();
         }
 
@@ -125,7 +126,7 @@ namespace LinkReplacer {
             {
                 MessageBox.Show("No files found!", "ERROR");
                 return;
-            } else if (textFindString.Text.Equals(""))
+            } else if (textFindString.Text.Equals("") && radioFindReplace.Checked)
             {
                 MessageBox.Show("Please input a string to find!", "ERROR");
                 return;
@@ -133,7 +134,19 @@ namespace LinkReplacer {
 
             string find = textFindString.Text;
             string replace = textReplaceString.Text;
+            int mode = 0;
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for the new PDFs
+
+            if (radioFindReplace.Checked)
+            {
+                mode = 0; //Find-replace all
+            } else if (radioAddStart.Checked)
+            {
+                mode = 1; //Add to start of strings that contain the find string
+            } else if (radioAddEnd.Checked)
+            {
+                mode = 2; //Add to end of strings that contain the find string
+            }
 
             //Initializes progress bar and log
             progressBar1.Value = 0;
@@ -151,7 +164,7 @@ namespace LinkReplacer {
                 textLog.Refresh();
                 try
                 {
-                    textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace) + "\n"); //Replaces links in current PDF and outputs count
+                    textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace, mode) + "\n"); //Replaces links in current PDF and outputs count
                 } catch
                 {
                     textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
