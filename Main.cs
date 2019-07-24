@@ -159,6 +159,7 @@ namespace LinkReplacer
 
         public static string LinkGrabber(string filePath, string fileName, StreamWriter writer) //Writes found links to CSV and outputs count
         {
+            string error = "\n";
             int foundLinks = 0; //Number of links found
             PdfReader reader = new PdfReader(filePath);
 
@@ -172,32 +173,40 @@ namespace LinkReplacer
                     continue;
                 }
 
-                foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
+                try
                 {
-                    PdfDictionary annotDict = (PdfDictionary)PdfReader.GetPdfObject(annot);
-
-                    if (annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.LINK) || annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.WIDGET)) //If the annotation is a hyperlink
+                    foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
                     {
-                        PdfDictionary annotAction = (PdfDictionary)PdfReader.GetPdfObject(annotDict.Get(PdfName.A));
+                        PdfDictionary annotDict = (PdfDictionary)PdfReader.GetPdfObject(annot);
 
-                        if (annotAction.Get(PdfName.S).Equals(PdfName.URI))
+                        if (annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.LINK) || annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.WIDGET)) //If the annotation is a hyperlink
                         {
-                            string foundURL = annotAction.GetAsString(PdfName.URI).ToString();
+                            PdfDictionary annotAction = (PdfDictionary)PdfReader.GetPdfObject(annotDict.Get(PdfName.A));
 
-                            try
+                            if (annotAction.Get(PdfName.S).Equals(PdfName.URI))
                             {
-                                if (foundURL.Substring(0, 4).Equals("http")) //If it's an actual link
+                                string foundURL = annotAction.GetAsString(PdfName.URI).ToString();
+
+                                try
                                 {
-                                    writer.WriteLine("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV file
-                                    foundLinks++;
+                                    if (foundURL.Substring(0, 4).Equals("http")) //If it's an actual link
+                                    {
+                                        writer.WriteLine("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV file
+                                        foundLinks++;
+                                    }
                                 }
+                                catch { } //Intentionally left blank
                             }
-                            catch {} //Intentionally left blank
                         }
                     }
                 }
+                catch
+                {
+                    error += "  WARNING: Problem reading page " + page + "\n";
+                }
+                
             }
-            return " - " + foundLinks + " link(s) found\n";
+            return " - " + foundLinks + " link(s) found" + error;
         }
     }
 }

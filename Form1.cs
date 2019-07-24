@@ -167,7 +167,7 @@ namespace LinkReplacer {
                     textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace, mode) + "\n"); //Replaces links in current PDF and outputs count
                 } catch
                 {
-                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                    textLog.AppendText("\nERROR: Cannot read file " + fileName + "\n");
                 }
                 
                 textLog.Refresh();
@@ -274,7 +274,7 @@ namespace LinkReplacer {
                 }
                 catch
                 {
-                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                    textLog.AppendText("\nERROR: Cannot read file " + fileName + "\n");
                 }
 
                 textLog.Refresh();
