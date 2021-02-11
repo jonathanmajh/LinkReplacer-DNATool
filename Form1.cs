@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
+using System.Text;
 
 namespace LinkReplacer {
     public partial class Form1 : Form
@@ -167,7 +168,7 @@ namespace LinkReplacer {
                     textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace, mode) + "\n"); //Replaces links in current PDF and outputs count
                 } catch
                 {
-                    textLog.AppendText("\nERROR: Cannot read file " + fileName + "\n");
+                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
                 }
                 
                 textLog.Refresh();
@@ -199,7 +200,7 @@ namespace LinkReplacer {
 
 
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            StreamWriter writer = new StreamWriter(textOutputFolder.Text + @"\" + idList[index] + ".csv");
+            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + ".csv", FileMode.Open), Encoding.UTF8);
 
             //Initializes progress bar and log
             progressBar1.Value = 0;
@@ -253,7 +254,8 @@ namespace LinkReplacer {
 
 
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            StreamWriter writer = new StreamWriter(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv");
+            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv", FileMode.Open), Encoding.UTF8);
+	
 
             //Initializes progress bar and log
             progressBar1.Value = 0;
@@ -274,7 +276,7 @@ namespace LinkReplacer {
                 }
                 catch
                 {
-                    textLog.AppendText("\nERROR: Cannot read file " + fileName + "\n");
+                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
                 }
 
                 textLog.Refresh();
