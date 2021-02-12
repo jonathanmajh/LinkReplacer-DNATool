@@ -84,6 +84,8 @@ namespace LinkReplacer {
 
         private void ComboSite_SelectedIndexChanged(object sender, EventArgs e) //Getting files from SharePoint
         {
+            textLog.AppendText("Connecting to Sharepoint\n:");
+            textLog.AppendText(addressList[comboSite.SelectedIndex] + "\n");
             fileList = Main.ReadSharePoint(addressList[comboSite.SelectedIndex]);
             labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
             comboDNATool.SelectedIndex = comboSite.SelectedIndex; //Matches DNATool combobox selection
@@ -200,7 +202,7 @@ namespace LinkReplacer {
 
 
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + ".csv", FileMode.Open), Encoding.UTF8);
+            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + ".csv", FileMode.Create), Encoding.UTF8);
 
             //Initializes progress bar and log
             progressBar1.Value = 0;
@@ -254,7 +256,7 @@ namespace LinkReplacer {
 
 
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv", FileMode.Open), Encoding.UTF8);
+            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv", FileMode.Create), Encoding.UTF8);
 	
 
             //Initializes progress bar and log
