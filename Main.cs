@@ -151,7 +151,15 @@ namespace LinkReplacer
                     }
                 }
             }
-            stamper.Close();
+            if (replaceNum > 0)
+            {
+                stamper.Close();
+            } else
+            {
+                stamper.Dispose();
+                File.Delete(fileOutputPath);
+            }
+           
             reader.Close();
 
             return " - " + replaceNum + " occurance(s) found";
