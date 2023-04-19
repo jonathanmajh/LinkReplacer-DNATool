@@ -131,7 +131,7 @@ namespace LinkReplacer
                                 switch (mode)
                                 {
                                     case 0: //Find-replace all
-                                        replaceNum += foundURL.Split(new string[] { find }, System.StringSplitOptions.RemoveEmptyEntries).Length - 1; //Counts number of instances
+                                        replaceNum += foundURL.Split(new string[] { find }, System.StringSplitOptions.None).Length - 1; //Counts number of instances
                                         newURL = foundURL.Replace(find, replace);
                                         annotAction.Put(PdfName.URI, new PdfString(newURL)); //Replaces the old URL with the new URL
                                         break;
