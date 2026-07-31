@@ -75,6 +75,8 @@
             // 
             this.comboSite.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.comboSite.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.comboSite.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboSite.FormattingEnabled = true;
             this.comboSite.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.comboSite.Location = new System.Drawing.Point(277, 6);
@@ -86,6 +88,8 @@
             // radioSharePoint
             // 
             this.radioSharePoint.AutoSize = true;
+            this.radioSharePoint.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioSharePoint.Location = new System.Drawing.Point(12, 12);
             this.radioSharePoint.Name = "radioSharePoint";
             this.radioSharePoint.Size = new System.Drawing.Size(465, 21);
@@ -99,6 +103,8 @@
             this.panelSharepoint.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelSharepoint.Controls.Add(this.label1);
             this.panelSharepoint.Controls.Add(this.comboSite);
+            this.panelSharepoint.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panelSharepoint.Location = new System.Drawing.Point(12, 39);
             this.panelSharepoint.Name = "panelSharepoint";
             this.panelSharepoint.Size = new System.Drawing.Size(776, 39);
@@ -123,6 +129,8 @@
             // radioFolder
             // 
             this.radioFolder.AutoSize = true;
+            this.radioFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioFolder.Location = new System.Drawing.Point(12, 154);
             this.radioFolder.Name = "radioFolder";
             this.radioFolder.Size = new System.Drawing.Size(150, 21);
@@ -134,6 +142,8 @@
             // radioFiles
             // 
             this.radioFiles.AutoSize = true;
+            this.radioFiles.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioFiles.Location = new System.Drawing.Point(12, 84);
             this.radioFiles.Name = "radioFiles";
             this.radioFiles.Size = new System.Drawing.Size(139, 21);
@@ -146,6 +156,8 @@
             // 
             this.panelFiles.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelFiles.Controls.Add(this.buttonFiles);
+            this.panelFiles.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panelFiles.Location = new System.Drawing.Point(12, 111);
             this.panelFiles.Name = "panelFiles";
             this.panelFiles.Size = new System.Drawing.Size(778, 37);
@@ -153,6 +165,7 @@
             // 
             // buttonFiles
             // 
+            this.buttonFiles.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.buttonFiles.Location = new System.Drawing.Point(327, 3);
             this.buttonFiles.Name = "buttonFiles";
             this.buttonFiles.Size = new System.Drawing.Size(120, 29);
@@ -164,6 +177,8 @@
             // labelNumOfFilesLocal
             // 
             this.labelNumOfFilesLocal.AutoSize = true;
+            this.labelNumOfFilesLocal.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.labelNumOfFilesLocal.Location = new System.Drawing.Point(16, 226);
             this.labelNumOfFilesLocal.Name = "labelNumOfFilesLocal";
             this.labelNumOfFilesLocal.Size = new System.Drawing.Size(107, 17);
@@ -176,6 +191,8 @@
             this.panelFolder.Controls.Add(this.buttonFolder);
             this.panelFolder.Controls.Add(this.textFolder);
             this.panelFolder.Controls.Add(this.label3);
+            this.panelFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panelFolder.Location = new System.Drawing.Point(12, 181);
             this.panelFolder.Name = "panelFolder";
             this.panelFolder.Size = new System.Drawing.Size(778, 38);
@@ -183,6 +200,7 @@
             // 
             // buttonFolder
             // 
+            this.buttonFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonFolder.Location = new System.Drawing.Point(740, 4);
             this.buttonFolder.Name = "buttonFolder";
             this.buttonFolder.Size = new System.Drawing.Size(33, 29);
@@ -193,6 +211,8 @@
             // 
             // textFolder
             // 
+            this.textFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textFolder.Location = new System.Drawing.Point(56, 6);
             this.textFolder.Name = "textFolder";
             this.textFolder.Size = new System.Drawing.Size(678, 22);
@@ -210,6 +230,8 @@
             // 
             // progressBar1
             // 
+            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar1.Location = new System.Drawing.Point(16, 457);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(770, 25);
@@ -220,6 +242,9 @@
             // 
             this.tabControl1.Controls.Add(this.tabLinkReplacer);
             this.tabControl1.Controls.Add(this.tabDNATool);
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Location = new System.Drawing.Point(12, 282);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -246,6 +271,7 @@
             // 
             // buttonLinkReplacer
             // 
+            this.buttonLinkReplacer.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.buttonLinkReplacer.Location = new System.Drawing.Point(324, 103);
             this.buttonLinkReplacer.Name = "buttonLinkReplacer";
             this.buttonLinkReplacer.Size = new System.Drawing.Size(120, 29);
@@ -256,6 +282,8 @@
             // 
             // textReplaceString
             // 
+            this.textReplaceString.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textReplaceString.Location = new System.Drawing.Point(150, 75);
             this.textReplaceString.Name = "textReplaceString";
             this.textReplaceString.Size = new System.Drawing.Size(614, 22);
@@ -263,6 +291,8 @@
             // 
             // textFindString
             // 
+            this.textFindString.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textFindString.Location = new System.Drawing.Point(150, 45);
             this.textFindString.Name = "textFindString";
             this.textFindString.Size = new System.Drawing.Size(614, 22);
@@ -271,6 +301,8 @@
             // label5
             // 
             this.label5.AutoSize = true;
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label5.Location = new System.Drawing.Point(6, 78);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(144, 17);
@@ -280,6 +312,8 @@
             // label4
             // 
             this.label4.AutoSize = true;
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.Location = new System.Drawing.Point(57, 47);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(92, 17);
@@ -302,6 +336,7 @@
             // 
             // buttonLinkGrabber
             // 
+            this.buttonLinkGrabber.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.buttonLinkGrabber.Location = new System.Drawing.Point(519, 38);
             this.buttonLinkGrabber.Name = "buttonLinkGrabber";
             this.buttonLinkGrabber.Size = new System.Drawing.Size(130, 29);
@@ -313,6 +348,8 @@
             // label6
             // 
             this.label6.AutoSize = true;
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.Location = new System.Drawing.Point(111, 43);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(36, 17);
@@ -321,6 +358,8 @@
             // 
             // comboDNATool
             // 
+            this.comboDNATool.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboDNATool.FormattingEnabled = true;
             this.comboDNATool.Location = new System.Drawing.Point(154, 40);
             this.comboDNATool.Name = "comboDNATool";
@@ -329,6 +368,7 @@
             // 
             // buttonDNATool
             // 
+            this.buttonDNATool.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.buttonDNATool.Location = new System.Drawing.Point(383, 38);
             this.buttonDNATool.Name = "buttonDNATool";
             this.buttonDNATool.Size = new System.Drawing.Size(130, 29);
@@ -339,6 +379,7 @@
             // 
             // buttonOutputFolder
             // 
+            this.buttonOutputFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonOutputFolder.Location = new System.Drawing.Point(753, 247);
             this.buttonOutputFolder.Name = "buttonOutputFolder";
             this.buttonOutputFolder.Size = new System.Drawing.Size(33, 29);
@@ -349,6 +390,8 @@
             // 
             // textOutputFolder
             // 
+            this.textOutputFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textOutputFolder.Location = new System.Drawing.Point(69, 251);
             this.textOutputFolder.Name = "textOutputFolder";
             this.textOutputFolder.Size = new System.Drawing.Size(678, 22);
@@ -357,6 +400,8 @@
             // label2
             // 
             this.label2.AutoSize = true;
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.Location = new System.Drawing.Point(16, 254);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(55, 17);
@@ -365,6 +410,9 @@
             // 
             // textLog
             // 
+            this.textLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textLog.Location = new System.Drawing.Point(16, 493);
             this.textLog.Name = "textLog";
             this.textLog.ReadOnly = true;
@@ -376,6 +424,8 @@
             // radioFindReplace
             // 
             this.radioFindReplace.AutoSize = true;
+            this.radioFindReplace.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioFindReplace.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.radioFindReplace.Location = new System.Drawing.Point(75, 14);
             this.radioFindReplace.Name = "radioFindReplace";
@@ -388,6 +438,8 @@
             // radioAddStart
             // 
             this.radioAddStart.AutoSize = true;
+            this.radioAddStart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioAddStart.Location = new System.Drawing.Point(331, 13);
             this.radioAddStart.Name = "radioAddStart";
             this.radioAddStart.Size = new System.Drawing.Size(102, 21);
@@ -399,6 +451,8 @@
             // radioAddEnd
             // 
             this.radioAddEnd.AutoSize = true;
+            this.radioAddEnd.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.radioAddEnd.Location = new System.Drawing.Point(583, 13);
             this.radioAddEnd.Name = "radioAddEnd";
             this.radioAddEnd.Size = new System.Drawing.Size(98, 21);
