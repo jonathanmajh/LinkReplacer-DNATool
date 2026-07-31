@@ -1,0 +1,36 @@
+name: Build EXE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: dotnet restore LinkReplacer.sln
+
+      - name: Build release executable
+        run: |
+          msbuild LinkReplacer.sln /t:Build /p:Configuration=Release /p:Platform="Any CPU" /restore
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LinkReplacer-exe
+          path: |
+            bin/Release/net472/
+          if-no-files-found: error
