@@ -37,9 +37,21 @@ namespace LinkReplacer {
             InitializeComponent();
         }
 
+        private string GetSitesCsvPath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sites.csv");
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
-            using (var reader = new StreamReader("Sites.csv")) 
+            string sitesCsvPath = GetSitesCsvPath();
+            if (!File.Exists(sitesCsvPath))
+            {
+                MessageBox.Show($"Required file not found:\n{sitesCsvPath}", "Missing file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            using (var reader = new StreamReader(sitesCsvPath))
             {
                 while (!reader.EndOfStream) //Initializes the dropdown list of sites for SharePoint and DNATool
                 {
@@ -86,7 +98,7 @@ namespace LinkReplacer {
         {
             textLog.AppendText("Connecting to Sharepoint\n:");
             textLog.AppendText(addressList[comboSite.SelectedIndex] + "\n");
-            fileList = Main.ReadSharePoint(addressList[comboSite.SelectedIndex]);
+            fileList = Main.ReadSharePoint(addressList[comboSite.SelectedIndex], checkRecursive.Checked);
             labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
             comboDNATool.SelectedIndex = comboSite.SelectedIndex; //Matches DNATool combobox selection
         }
@@ -111,8 +123,65 @@ namespace LinkReplacer {
 
         private void TextFolder_LostFocus(object sender, EventArgs e) //Grabs all files from selected folder
         {
-            fileList = Main.ReadFolder(textFolder.Text);
+            fileList = Main.ReadFolder(textFolder.Text, checkRecursive.Checked);
             labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
+        }
+
+        private void CheckRecursive_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioFolder.Checked && !string.IsNullOrWhiteSpace(textFolder.Text))
+            {
+                TextFolder_LostFocus(sender, e);
+            }
+            else if (radioSharePoint.Checked && comboSite.SelectedIndex >= 0)
+            {
+                ComboSite_SelectedIndexChanged(sender, e);
+            }
+        }
+
+        private string GetSelectedSourceRoot()
+        {
+            if (radioSharePoint.Checked)
+            {
+                return @"B:\";
+            }
+
+            if (radioFolder.Checked)
+            {
+                return textFolder.Text;
+            }
+
+            return string.Empty;
+        }
+
+        private string GetOutputFilePath(string filePath)
+        {
+            Directory.CreateDirectory(textOutputFolder.Text);
+
+            if (checkRecursive.Checked)
+            {
+                string sourceRoot = GetSelectedSourceRoot();
+                if (!string.IsNullOrWhiteSpace(sourceRoot))
+                {
+                    string fullSourceRoot = Path.GetFullPath(sourceRoot);
+                    string fullFilePath = Path.GetFullPath(filePath);
+
+                    if (fullFilePath.StartsWith(fullSourceRoot, StringComparison.OrdinalIgnoreCase))
+                    {
+                        string relativePath = fullFilePath.Substring(fullSourceRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        string relativeDirectory = Path.GetDirectoryName(relativePath);
+
+                        if (!string.IsNullOrWhiteSpace(relativeDirectory))
+                        {
+                            string outputDirectory = Path.Combine(textOutputFolder.Text, relativeDirectory);
+                            Directory.CreateDirectory(outputDirectory);
+                            return Path.Combine(outputDirectory, Path.GetFileName(filePath));
+                        }
+                    }
+                }
+            }
+
+            return Path.Combine(textOutputFolder.Text, Path.GetFileName(filePath));
         }
 
         private void ButtonOutputFolder_Click(object sender, EventArgs e) //Displays the Folder Browser Dialog
@@ -161,7 +230,7 @@ namespace LinkReplacer {
             {
                 string filePath = fileList[i];
                 string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
-                string fileOutputPath = textOutputFolder.Text + @"\" + fileName;
+                string fileOutputPath = GetOutputFilePath(filePath);
 
                 textLog.AppendText(fileName); //Separate refresh in case it gets stuck reading the PDF
                 textLog.Refresh();

@@ -21,7 +21,7 @@ namespace LinkReplacer
             cmd.WaitForExit(); //Waits for command to finish
         }
 
-        public static List<string> ReadSharePoint(string address) //Map chosen SharePoint site to B: drive and gets PDF filepaths
+        public static List<string> ReadSharePoint(string address, bool recursive = false) //Map chosen SharePoint site to B: drive and gets PDF filepaths
         {
             UnmapSharePoint(); //Unmap B: drive just in case it was already mapped previously
             string map = @"/c net use B: ""\\" + address + "\""; //COMMAND: net use B: "\\address"
@@ -32,7 +32,7 @@ namespace LinkReplacer
             Process cmd = Process.Start(cmdStartInfo); //Runs the command with given arguments
             cmd.WaitForExit(); //Waits for command to finish
 
-            return ReadFolder(@"B:\"); //Can treat B: as normal folder
+            return ReadFolder(@"B:\", recursive); //Can treat B: as normal folder
         }
 
         public static List<string> ReadFiles(string[] fileNames) //Individually selected files (no real reason to have a function but is consistent)
@@ -40,7 +40,7 @@ namespace LinkReplacer
             return fileNames.OfType<string>().ToList(); //Converts string array to list of strings
         }
 
-        public static List<string> ReadFolder(string folder) //Gets filepaths of all PDFs in the folder
+        public static List<string> ReadFolder(string folder, bool recursive = false) //Gets filepaths of all PDFs in the folder
         {
             List<string> fileList = new List<string>();
             if (Directory.Exists(folder) == false)
@@ -49,7 +49,8 @@ namespace LinkReplacer
                 return fileList;
             }
 
-            foreach (string file in Directory.GetFiles(folder, "*.pdf")) //All PDFs in the folder
+            SearchOption searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            foreach (string file in Directory.GetFiles(folder, "*.pdf", searchOption)) //All PDFs in the folder
             {
                 fileList.Add(file);
             }

@@ -43,6 +43,7 @@
             this.buttonFolder = new System.Windows.Forms.Button();
             this.textFolder = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.checkRecursive = new System.Windows.Forms.CheckBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabLinkReplacer = new System.Windows.Forms.TabPage();
@@ -228,9 +229,20 @@
             this.label3.TabIndex = 2;
             this.label3.Text = "Folder:";
             // 
+            // checkRecursive
+            // 
+            this.checkRecursive.AutoSize = true;
+            this.checkRecursive.Location = new System.Drawing.Point(16, 224);
+            this.checkRecursive.Name = "checkRecursive";
+            this.checkRecursive.Size = new System.Drawing.Size(286, 21);
+            this.checkRecursive.TabIndex = 6;
+            this.checkRecursive.Text = "Recursively search subfolders";
+            this.checkRecursive.UseVisualStyleBackColor = true;
+            this.checkRecursive.CheckedChanged += new System.EventHandler(this.CheckRecursive_CheckedChanged);
+            // 
             // progressBar1
             // 
-            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar1.Location = new System.Drawing.Point(16, 457);
             this.progressBar1.Name = "progressBar1";
@@ -242,8 +254,7 @@
             // 
             this.tabControl1.Controls.Add(this.tabLinkReplacer);
             this.tabControl1.Controls.Add(this.tabDNATool);
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Location = new System.Drawing.Point(12, 282);
             this.tabControl1.Name = "tabControl1";
@@ -271,7 +282,7 @@
             // 
             // buttonLinkReplacer
             // 
-            this.buttonLinkReplacer.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.buttonLinkReplacer.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.buttonLinkReplacer.Location = new System.Drawing.Point(324, 103);
             this.buttonLinkReplacer.Name = "buttonLinkReplacer";
             this.buttonLinkReplacer.Size = new System.Drawing.Size(120, 29);
@@ -358,8 +369,7 @@
             // 
             // comboDNATool
             // 
-            this.comboDNATool.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboDNATool.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.comboDNATool.FormattingEnabled = true;
             this.comboDNATool.Location = new System.Drawing.Point(154, 40);
             this.comboDNATool.Name = "comboDNATool";
@@ -467,6 +477,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 644);
             this.Controls.Add(this.textLog);
+            this.Controls.Add(this.checkRecursive);
             this.Controls.Add(this.buttonOutputFolder);
             this.Controls.Add(this.textOutputFolder);
             this.Controls.Add(this.label2);
@@ -513,6 +524,7 @@
         private System.Windows.Forms.Label labelNumOfFilesLocal;
         private System.Windows.Forms.TextBox textFolder;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox checkRecursive;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabLinkReplacer;
