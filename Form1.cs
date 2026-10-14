@@ -123,8 +123,31 @@ namespace LinkReplacer {
 
         private void TextFolder_LostFocus(object sender, EventArgs e) //Grabs all files from selected folder
         {
-            fileList = Main.ReadFolder(textFolder.Text, checkRecursive.Checked);
-            labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
+            RefreshFileList();
+        }
+
+        private void RefreshFileList(bool verbose = true)
+        {
+            if (radioFolder.Checked)
+            {
+                fileList = Main.ReadFolder(textFolder.Text, checkRecursive.Checked);
+                labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
+            }
+            else if (radioSharePoint.Checked)
+            {
+                if (comboSite.SelectedIndex >= 0)
+                {
+                    if (verbose)
+                    {
+                        textLog.AppendText("Connecting to Sharepoint\n:");
+                        textLog.AppendText(addressList[comboSite.SelectedIndex] + "\n");
+                    }
+                    fileList = Main.ReadSharePoint(addressList[comboSite.SelectedIndex], checkRecursive.Checked);
+                    labelNumOfFilesLocal.Text = "Number of files: " + fileList.Count; //Updates number of files
+                    comboDNATool.SelectedIndex = comboSite.SelectedIndex; //Matches DNATool combobox selection
+                }
+            }
+            // radioFiles: keep the explicitly chosen files; nothing to refresh.
         }
 
         private void CheckRecursive_CheckedChanged(object sender, EventArgs e)
@@ -194,6 +217,7 @@ namespace LinkReplacer {
 
         private void ButtonLinkReplacer_Click(object sender, EventArgs e) //Finds and replaces matching strings in PDF hyperlinks
         {
+            RefreshFileList(verbose: false);
             if (fileList.Count == 0)
             {
                 MessageBox.Show("No files found!", "ERROR");
@@ -239,7 +263,7 @@ namespace LinkReplacer {
                     textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace, mode) + "\n"); //Replaces links in current PDF and outputs count
                 } catch
                 {
-                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                    textLog.AppendText(" - ERROR: Cannot read file " + fileName + "\n");
                 }
                 
                 textLog.Refresh();
@@ -258,6 +282,7 @@ namespace LinkReplacer {
 
         private void ButtonDNATool_Click(object sender, EventArgs e) //Generates a CSV file of all the assets in the PDFs
         {
+            RefreshFileList(verbose: false);
             int index = comboDNATool.SelectedIndex;
             if (fileList.Count == 0)
             {
@@ -311,6 +336,7 @@ namespace LinkReplacer {
 
         private void ButtonLinkGrabber_Click(object sender, EventArgs e) //Grabs every hyperlink from the selected PDFs
         {
+            RefreshFileList(verbose: false);
             int index = comboDNATool.SelectedIndex;
             if (fileList.Count == 0)
             {
@@ -347,7 +373,7 @@ namespace LinkReplacer {
                 }
                 catch
                 {
-                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                    textLog.AppendText(" - ERROR: Cannot read file " + fileName + "\n");
                 }
 
                 textLog.Refresh();

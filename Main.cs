@@ -1,4 +1,5 @@
 ﻿//*IMPORTANT* Requires iTextSharp v5.5.13 - available in NuGet
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -101,8 +102,36 @@ namespace LinkReplacer
         public static string LinkReplacer(string filePath, string fileOutputPath, string find, string replace, int mode) //Replaces links in current PDF and outputs count
         {
             int replaceNum = 0; //Number of replaced instances
-            PdfReader reader = new PdfReader(filePath);
-            PdfStamper stamper = new PdfStamper(reader, new FileStream(fileOutputPath, FileMode.Create));
+
+            // When output == input, writing directly would truncate the source
+            // while PdfReader is still using it. Write to a temp file first.
+            bool inPlace = string.Equals(
+                Path.GetFullPath(filePath),
+                Path.GetFullPath(fileOutputPath),
+                StringComparison.OrdinalIgnoreCase);
+            string actualOutputPath = fileOutputPath;
+            string tempPath = null;
+            if (inPlace)
+            {
+                string directory = Path.GetDirectoryName(Path.GetFullPath(fileOutputPath));
+                if (string.IsNullOrEmpty(directory))
+                {
+                    directory = Path.GetTempPath();
+                }
+                tempPath = Path.Combine(directory,
+                    Path.GetFileNameWithoutExtension(filePath) + ".tmp-" + Guid.NewGuid().ToString("N") + Path.GetExtension(filePath));
+                actualOutputPath = tempPath;
+            }
+
+            PdfReader reader = null;
+            FileStream outputStream = null;
+            PdfStamper stamper = null;
+            try
+            {
+                reader = new PdfReader(filePath);
+                outputStream = new FileStream(actualOutputPath, FileMode.Create);
+                stamper = new PdfStamper(reader, outputStream);
+                outputStream = null; // Ownership transferred to stamper
 
             for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
             {
@@ -155,15 +184,35 @@ namespace LinkReplacer
             if (replaceNum > 0)
             {
                 stamper.Close();
+                stamper = null;
             } else
             {
                 stamper.Dispose();
-                File.Delete(fileOutputPath);
+                stamper = null;
+                File.Delete(actualOutputPath);
             }
-           
-            reader.Close();
 
-            return " - " + replaceNum + " occurance(s) found";
+                try { reader.Close(); } catch { }
+                reader = null;
+
+                if (inPlace && replaceNum > 0)
+                {
+                    // Atomically replace the original only after the temp file is fully written.
+                    File.Copy(actualOutputPath, filePath, true);
+                    File.Delete(actualOutputPath);
+                }
+
+                return " - " + replaceNum + " occurance(s) found";
+            }
+            catch
+            {
+                try { if (stamper != null) stamper.Dispose(); } catch { }
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                try { if (reader != null) reader.Close(); } catch { }
+                // Remove the partial/temp output; never touch the original on failure.
+                try { if (actualOutputPath != null && File.Exists(actualOutputPath)) File.Delete(actualOutputPath); } catch { }
+                throw;
+            }
         }
 
         public static string LinkGrabber(string filePath, string fileName, StreamWriter writer) //Writes found links to CSV and outputs count
