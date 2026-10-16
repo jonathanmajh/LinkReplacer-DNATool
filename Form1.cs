@@ -53,7 +53,31 @@ namespace LinkReplacer {
         private void ProgressBarDrawString(string value) //Draws the percentage on the progressbar
         {
             progressBar1.Refresh();
-            progressBar1.CreateGraphics().DrawString(value, new Font(FontFamily.GenericSansSerif, (float)7.8, FontStyle.Regular), Brushes.Black, new PointF(progressBar1.Width / 2 - 10, progressBar1.Height / 2 - 7));
+            using (var g = progressBar1.CreateGraphics())
+            using (var font = new Font(FontFamily.GenericSansSerif, (float)7.8, FontStyle.Regular))
+            {
+                g.DrawString(value, font, Brushes.Black, new PointF(progressBar1.Width / 2 - 10, progressBar1.Height / 2 - 7));
+            }
+        }
+
+        // iTextSharp loads whole PDFs into large byte[]s (LOH). The GC does not
+        // promptly return that to the OS after a big batch, so working set can sit
+        // at many GB after "Done". Compact the LOH and force a full collection
+        // once per batch; per-file readers are already closed/disposed by then.
+        private static void ReleaseBatchMemory()
+        {
+            try
+            {
+                System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+            }
+            catch { }
+            try
+            {
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+                GC.WaitForPendingFinalizers();
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            }
+            catch { }
         }
 
         private void ProgressBarNoAnimation(int value) //Prevent the progressbar from lagging behind, disables the animation by going backwards
@@ -412,6 +436,9 @@ namespace LinkReplacer {
                 SetBusy(false);
                 try { _cts?.Dispose(); } catch { }
                 _cts = null;
+                files = null;
+                outputs = null;
+                ReleaseBatchMemory();
             }
 
             if (cancelled)
@@ -527,6 +554,16 @@ namespace LinkReplacer {
                 SetBusy(false);
                 try { _cts?.Dispose(); } catch { }
                 _cts = null;
+                try
+                {
+                    if (logs != null) Array.Clear(logs, 0, logs.Length);
+                    if (csvRows != null) Array.Clear(csvRows, 0, csvRows.Length);
+                }
+                catch { }
+                logs = null;
+                csvRows = null;
+                files = null;
+                ReleaseBatchMemory();
             }
 
             if (cancelled)
@@ -642,6 +679,16 @@ namespace LinkReplacer {
                 SetBusy(false);
                 try { _cts?.Dispose(); } catch { }
                 _cts = null;
+                try
+                {
+                    if (logs != null) Array.Clear(logs, 0, logs.Length);
+                    if (csvRows != null) Array.Clear(csvRows, 0, csvRows.Length);
+                }
+                catch { }
+                logs = null;
+                csvRows = null;
+                files = null;
+                ReleaseBatchMemory();
             }
 
             if (cancelled)

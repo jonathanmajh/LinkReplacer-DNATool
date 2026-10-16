@@ -125,6 +125,7 @@ namespace LinkReplacer
             finally
             {
                 try { reader.Close(); } catch { }
+                try { ((IDisposable)reader).Dispose(); } catch { }
             }
             result.Log = error;
             return result;
@@ -162,7 +163,6 @@ namespace LinkReplacer
                 reader = new PdfReader(filePath);
                 outputStream = new FileStream(actualOutputPath, FileMode.Create);
                 stamper = new PdfStamper(reader, outputStream);
-                outputStream = null; // Ownership transferred to stamper
 
             for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
             {
@@ -229,13 +229,18 @@ namespace LinkReplacer
                 stamper = null;
             } else
             {
-                stamper.Dispose();
+                try { stamper.Dispose(); } catch { }
                 stamper = null;
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                outputStream = null;
                 File.Delete(actualOutputPath);
             }
 
                 try { reader.Close(); } catch { }
+                try { if (reader is IDisposable rd) rd.Dispose(); } catch { }
                 reader = null;
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                outputStream = null;
 
                 if (inPlace && replaceNum > 0)
                 {
@@ -251,6 +256,7 @@ namespace LinkReplacer
                 try { if (stamper != null) stamper.Dispose(); } catch { }
                 try { if (outputStream != null) outputStream.Dispose(); } catch { }
                 try { if (reader != null) reader.Close(); } catch { }
+                try { if (reader is IDisposable rd) rd.Dispose(); } catch { }
                 // Remove the partial/temp output; never touch the original on failure.
                 try { if (actualOutputPath != null && File.Exists(actualOutputPath)) File.Delete(actualOutputPath); } catch { }
                 throw;
@@ -324,6 +330,7 @@ namespace LinkReplacer
             finally
             {
                 try { reader.Close(); } catch { }
+                try { ((IDisposable)reader).Dispose(); } catch { }
             }
             result.Log = " - " + foundLinks + " link(s) found" + error;
             return result;
