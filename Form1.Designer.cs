@@ -46,6 +46,8 @@
             this.checkRecursive = new System.Windows.Forms.CheckBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.buttonCancel = new System.Windows.Forms.Button();
+            this.labelThreads = new System.Windows.Forms.Label();
+            this.numericThreads = new System.Windows.Forms.NumericUpDown();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabLinkReplacer = new System.Windows.Forms.TabPage();
             this.buttonLinkReplacer = new System.Windows.Forms.Button();
@@ -247,9 +249,42 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar1.Location = new System.Drawing.Point(16, 457);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(640, 25);
+            this.progressBar1.Size = new System.Drawing.Size(500, 25);
             this.progressBar1.Step = 1;
             this.progressBar1.TabIndex = 6;
+            // 
+            // labelThreads
+            // 
+            this.labelThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelThreads.AutoSize = true;
+            this.labelThreads.Location = new System.Drawing.Point(522, 461);
+            this.labelThreads.Name = "labelThreads";
+            this.labelThreads.Size = new System.Drawing.Size(60, 17);
+            this.labelThreads.TabIndex = 13;
+            this.labelThreads.Text = "Threads:";
+            // 
+            // numericThreads
+            // 
+            this.numericThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.numericThreads.Location = new System.Drawing.Point(588, 459);
+            this.numericThreads.Maximum = new decimal(new int[] {
+            64,
+            0,
+            0,
+            0});
+            this.numericThreads.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericThreads.Name = "numericThreads";
+            this.numericThreads.Size = new System.Drawing.Size(60, 22);
+            this.numericThreads.TabIndex = 14;
+            this.numericThreads.Value = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
             // 
             // buttonCancel
             // 
@@ -489,6 +524,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 644);
+            this.Controls.Add(this.numericThreads);
+            this.Controls.Add(this.labelThreads);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.textLog);
             this.Controls.Add(this.checkRecursive);
@@ -541,6 +578,8 @@
         private System.Windows.Forms.CheckBox checkRecursive;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Button buttonCancel;
+        private System.Windows.Forms.Label labelThreads;
+        private System.Windows.Forms.NumericUpDown numericThreads;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabLinkReplacer;
         private System.Windows.Forms.TabPage tabDNATool;

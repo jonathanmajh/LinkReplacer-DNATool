@@ -57,8 +57,21 @@ namespace LinkReplacer {
             buttonOutputFolder.Enabled = !busy;
             comboSite.Enabled = !busy;
             comboDNATool.Enabled = !busy;
+            if (numericThreads != null)
+                numericThreads.Enabled = !busy;
             if (buttonCancel != null)
                 buttonCancel.Enabled = busy;
+        }
+
+        private int GetMaxThreads()
+        {
+            try
+            {
+                if (numericThreads != null)
+                    return Math.Max(1, Math.Min(64, (int)numericThreads.Value));
+            }
+            catch { }
+            return Environment.ProcessorCount;
         }
 
         private void ButtonCancel_Click(object sender, EventArgs e)
@@ -111,6 +124,16 @@ namespace LinkReplacer {
             textOutputFolder.Text = Directory.GetCurrentDirectory() + @"\Output";
             radioSharePoint.Checked = true;
             radioFindReplace.Checked = true;
+            try
+            {
+                if (numericThreads != null)
+                {
+                    numericThreads.Minimum = 1;
+                    numericThreads.Maximum = 64;
+                    numericThreads.Value = Math.Max(1, Math.Min(64, Environment.ProcessorCount));
+                }
+            }
+            catch { }
             Main.UnmapSharePoint();
         }
 
@@ -312,7 +335,7 @@ namespace LinkReplacer {
             try
             {
                 int done = 0;
-                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token };
+                var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
                 await Task.Run(() => Parallel.For(0, files.Count, options, i =>
                 {
                     options.CancellationToken.ThrowIfCancellationRequested();
@@ -401,7 +424,7 @@ namespace LinkReplacer {
             try
             {
                 int done = 0;
-                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token };
+                var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
                 await Task.Run(() => Parallel.For(0, files.Count, options, i =>
                 {
                     options.CancellationToken.ThrowIfCancellationRequested();
@@ -513,7 +536,7 @@ namespace LinkReplacer {
             try
             {
                 int done = 0;
-                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token };
+                var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
                 await Task.Run(() => Parallel.For(0, files.Count, options, i =>
                 {
                     options.CancellationToken.ThrowIfCancellationRequested();
