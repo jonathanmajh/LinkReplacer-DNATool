@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -21,6 +22,31 @@ namespace LinkReplacer {
             public int Done;
             public int Total;
             public string LogText = "";
+        }
+
+        private sealed class WorkItem
+        {
+            public int Index;
+            public string Path = "";
+            public long Size;
+        }
+
+        // Largest-first + one-at-a-time work stealing. Files vary hugely in size,
+        // so fixed range chunks leave one thread stuck on the big PDFs while the
+        // rest sit idle. Sorting big-first and letting idle threads pull the next
+        // file keeps the tail short. Results stay indexed by original position so
+        // CSV/output order is unchanged.
+        private static List<WorkItem> OrderLargestFirst(List<string> files)
+        {
+            var items = new List<WorkItem>(files.Count);
+            for (int i = 0; i < files.Count; i++)
+            {
+                long size = 0;
+                try { size = new FileInfo(files[i]).Length; } catch { size = 0; }
+                items.Add(new WorkItem { Index = i, Path = files[i], Size = size });
+            }
+            items.Sort((a, b) => b.Size.CompareTo(a.Size));
+            return items;
         }
 
         private void ProgressBarDrawString(string value) //Draws the percentage on the progressbar
@@ -336,14 +362,17 @@ namespace LinkReplacer {
             {
                 int done = 0;
                 var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
-                await Task.Run(() => Parallel.For(0, files.Count, options, i =>
+                var ordered = OrderLargestFirst(files);
+                var partitioner = Partitioner.Create(ordered, EnumerablePartitionerOptions.NoBuffering);
+                await Task.Run(() => Parallel.ForEach(partitioner, options, item =>
                 {
                     options.CancellationToken.ThrowIfCancellationRequested();
-                    string name = Path.GetFileName(files[i]);
+                    int i = item.Index;
+                    string name = Path.GetFileName(item.Path);
                     string line;
                     try
                     {
-                        line = name + Main.LinkReplacer(files[i], outputs[i], find, replace, mode) + "\n"; //Replaces links in current PDF and outputs count
+                        line = name + Main.LinkReplacer(item.Path, outputs[i], find, replace, mode) + "\n"; //Replaces links in current PDF and outputs count
                     }
                     catch (Exception ex)
                     {
@@ -425,13 +454,16 @@ namespace LinkReplacer {
             {
                 int done = 0;
                 var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
-                await Task.Run(() => Parallel.For(0, files.Count, options, i =>
+                var ordered = OrderLargestFirst(files);
+                var partitioner = Partitioner.Create(ordered, EnumerablePartitionerOptions.NoBuffering);
+                await Task.Run(() => Parallel.ForEach(partitioner, options, item =>
                 {
                     options.CancellationToken.ThrowIfCancellationRequested();
-                    string fileName = Path.GetFileName(files[i]);
+                    int i = item.Index;
+                    string fileName = Path.GetFileName(item.Path);
                     try
                     {
-                        Main.DnaToolResult r = Main.DNATool(files[i], fileName, siteAddress); //Scans PDF and returns assets
+                        Main.DnaToolResult r = Main.DNATool(item.Path, fileName, siteAddress); //Scans PDF and returns assets
                         logs[i] = fileName + "\n" + r.Log;
                         csvRows[i] = r.Rows;
                     }
@@ -537,13 +569,16 @@ namespace LinkReplacer {
             {
                 int done = 0;
                 var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
-                await Task.Run(() => Parallel.For(0, files.Count, options, i =>
+                var ordered = OrderLargestFirst(files);
+                var partitioner = Partitioner.Create(ordered, EnumerablePartitionerOptions.NoBuffering);
+                await Task.Run(() => Parallel.ForEach(partitioner, options, item =>
                 {
                     options.CancellationToken.ThrowIfCancellationRequested();
-                    string fileName = Path.GetFileName(files[i]);
+                    int i = item.Index;
+                    string fileName = Path.GetFileName(item.Path);
                     try
                     {
-                        Main.LinkGrabberResult r = Main.LinkGrabber(files[i], fileName); //Scans PDF and returns links
+                        Main.LinkGrabberResult r = Main.LinkGrabber(item.Path, fileName); //Scans PDF and returns links
                         logs[i] = fileName + r.Log;
                         csvRows[i] = r.Rows;
                     }
