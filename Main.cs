@@ -62,6 +62,8 @@ namespace LinkReplacer
         {
             string error = "";
             PdfReader reader = new PdfReader(filePath);
+            try
+            {
 
             for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
             {
@@ -76,25 +78,41 @@ namespace LinkReplacer
 
                 foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
                 {
-                    PdfDictionary annotDict = (PdfDictionary)PdfReader.GetPdfObject(annot);
+                    PdfDictionary annotDict = PdfReader.GetPdfObject(annot) as PdfDictionary;
+                    if (annotDict == null)
+                        continue;
 
-                    if (annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.LINK) || annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.WIDGET)) //If the annotation is a hyperlink
+                    PdfObject subtype = annotDict.Get(PdfName.SUBTYPE);
+                    if (!PdfName.LINK.Equals(subtype) && !PdfName.WIDGET.Equals(subtype)) //If the annotation is a hyperlink
+                        continue;
+
+                    // Internal page links use /Dest instead of /A - only URI actions matter here.
+                    if (annotDict.Get(PdfName.A) == null)
+                        continue;
+                    PdfDictionary annotAction = PdfReader.GetPdfObject(annotDict.Get(PdfName.A)) as PdfDictionary;
+                    if (annotAction == null)
+                        continue;
+
+                    if (PdfName.URI.Equals(annotAction.Get(PdfName.S)))
                     {
-                        PdfDictionary annotAction = (PdfDictionary)PdfReader.GetPdfObject(annotDict.Get(PdfName.A));
+                        PdfString uriString = annotAction.GetAsString(PdfName.URI);
+                        if (uriString == null)
+                            continue;
+                        string foundURL = uriString.ToString();
+                        int index = foundURL.IndexOf("assetnum"); //Searches for blue box links
 
-                        if (annotAction.Get(PdfName.S).Equals(PdfName.URI))
+                        if (index != -1) //If it's a blue box
                         {
-                            string foundURL = annotAction.GetAsString(PdfName.URI).ToString();
-                            int index = foundURL.IndexOf("assetnum"); //Searches for blue box links
-
-                            if (index != -1) //If it's a blue box
-                            {
-                                string assetNum = foundURL.Substring(index + 9, 5); //From counting
-                                writer.WriteLine("\"" + assetNum + "\",,\"" + siteAddress + "/" + fileName + "\",,\"" + fileName + "\""); //Adds the asset to the CSV file
-                            }
+                            string assetNum = foundURL.Substring(index + 9, 5); //From counting
+                            writer.WriteLine("\"" + assetNum + "\",,\"" + siteAddress + "/" + fileName + "\",,\"" + fileName + "\""); //Adds the asset to the CSV file
                         }
                     }
                 }
+            }
+            }
+            finally
+            {
+                try { reader.Close(); } catch { }
             }
             return error;
         }
@@ -145,15 +163,27 @@ namespace LinkReplacer
 
                 foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
                 {
-                    PdfDictionary annotDict = (PdfDictionary)PdfReader.GetPdfObject(annot);
+                    PdfDictionary annotDict = PdfReader.GetPdfObject(annot) as PdfDictionary;
+                    if (annotDict == null)
+                        continue;
 
-                    if (annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.LINK) || annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.WIDGET)) //If the annotation is a hyperlink
+                    PdfObject subtype = annotDict.Get(PdfName.SUBTYPE);
+                    if (!PdfName.LINK.Equals(subtype) && !PdfName.WIDGET.Equals(subtype)) //If the annotation is a hyperlink
+                        continue;
+
+                    // Internal page links use /Dest instead of /A - only URI actions matter here.
+                    if (annotDict.Get(PdfName.A) == null)
+                        continue;
+                    PdfDictionary annotAction = PdfReader.GetPdfObject(annotDict.Get(PdfName.A)) as PdfDictionary;
+                    if (annotAction == null)
+                        continue;
+
+                    if (PdfName.URI.Equals(annotAction.Get(PdfName.S)))
                     {
-                        PdfDictionary annotAction = (PdfDictionary)PdfReader.GetPdfObject(annotDict.Get(PdfName.A));
-
-                        if (annotAction.Get(PdfName.S).Equals(PdfName.URI))
-                        {
-                            string foundURL = annotAction.GetAsString(PdfName.URI).ToString();
+                        PdfString uriString = annotAction.GetAsString(PdfName.URI);
+                        if (uriString == null)
+                            continue;
+                        string foundURL = uriString.ToString();
 
                             if (foundURL.IndexOf(find) != -1) //If the string exists
                             {
@@ -178,7 +208,6 @@ namespace LinkReplacer
                                 }
                             }
                         }
-                    }
                 }
             }
             if (replaceNum > 0)
@@ -220,6 +249,8 @@ namespace LinkReplacer
             string error = "\n";
             int foundLinks = 0; //Number of links found
             PdfReader reader = new PdfReader(filePath);
+            try
+            {
 
             for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
             {
@@ -235,15 +266,27 @@ namespace LinkReplacer
                 {
                     foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
                     {
-                        PdfDictionary annotDict = (PdfDictionary)PdfReader.GetPdfObject(annot);
+                        PdfDictionary annotDict = PdfReader.GetPdfObject(annot) as PdfDictionary;
+                        if (annotDict == null)
+                            continue;
 
-                        if (annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.LINK) || annotDict.Get(PdfName.SUBTYPE).Equals(PdfName.WIDGET)) //If the annotation is a hyperlink
+                        PdfObject subtype = annotDict.Get(PdfName.SUBTYPE);
+                        if (!PdfName.LINK.Equals(subtype) && !PdfName.WIDGET.Equals(subtype)) //If the annotation is a hyperlink
+                            continue;
+
+                        // Internal page links use /Dest instead of /A - only URI actions matter here.
+                        if (annotDict.Get(PdfName.A) == null)
+                            continue;
+                        PdfDictionary annotAction = PdfReader.GetPdfObject(annotDict.Get(PdfName.A)) as PdfDictionary;
+                        if (annotAction == null)
+                            continue;
+
+                        if (PdfName.URI.Equals(annotAction.Get(PdfName.S)))
                         {
-                            PdfDictionary annotAction = (PdfDictionary)PdfReader.GetPdfObject(annotDict.Get(PdfName.A));
-
-                            if (annotAction.Get(PdfName.S).Equals(PdfName.URI))
-                            {
-                                string foundURL = annotAction.GetAsString(PdfName.URI).ToString();
+                            PdfString uriString = annotAction.GetAsString(PdfName.URI);
+                            if (uriString == null)
+                                continue;
+                            string foundURL = uriString.ToString();
 
                                 try
                                 {
@@ -255,7 +298,6 @@ namespace LinkReplacer
                                 }
                                 catch { } //Intentionally left blank
                             }
-                        }
                     }
                 }
                 catch
@@ -263,6 +305,11 @@ namespace LinkReplacer
                     error += "  WARNING: Problem reading page " + page + "\n";
                 }
                 
+            }
+            }
+            finally
+            {
+                try { reader.Close(); } catch { }
             }
             return " - " + foundLinks + " link(s) found" + error;
         }

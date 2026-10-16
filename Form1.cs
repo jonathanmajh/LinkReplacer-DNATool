@@ -296,8 +296,8 @@ namespace LinkReplacer {
 
 
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + ".csv", FileMode.Create), Encoding.UTF8);
-
+            using (StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + ".csv", FileMode.Create), Encoding.UTF8))
+            {
             //Initializes progress bar and log
             progressBar1.Value = 0;
             progressBar1.Maximum = fileList.Count;
@@ -330,7 +330,7 @@ namespace LinkReplacer {
             textLog.Refresh();
             ProgressBarDrawString("100% Done! :)");
 
-            writer.Close();
+            }
             Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
         }
 
@@ -351,8 +351,8 @@ namespace LinkReplacer {
 
 
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv", FileMode.Create), Encoding.UTF8);
-	
+            using (StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv", FileMode.Create), Encoding.UTF8))
+            {
 
             //Initializes progress bar and log
             progressBar1.Value = 0;
@@ -387,7 +387,7 @@ namespace LinkReplacer {
             textLog.Refresh();
             ProgressBarDrawString("100% Done! :)");
 
-            writer.Close();
+            }
             Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
         }
     }
