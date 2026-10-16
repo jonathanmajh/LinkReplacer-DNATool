@@ -45,6 +45,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.checkRecursive = new System.Windows.Forms.CheckBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.buttonCancel = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabLinkReplacer = new System.Windows.Forms.TabPage();
             this.buttonLinkReplacer = new System.Windows.Forms.Button();
@@ -246,9 +247,21 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar1.Location = new System.Drawing.Point(16, 457);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(770, 25);
+            this.progressBar1.Size = new System.Drawing.Size(640, 25);
             this.progressBar1.Step = 1;
             this.progressBar1.TabIndex = 6;
+            // 
+            // buttonCancel
+            // 
+            this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonCancel.Enabled = false;
+            this.buttonCancel.Location = new System.Drawing.Point(662, 457);
+            this.buttonCancel.Name = "buttonCancel";
+            this.buttonCancel.Size = new System.Drawing.Size(124, 25);
+            this.buttonCancel.TabIndex = 12;
+            this.buttonCancel.Text = "Cancel";
+            this.buttonCancel.UseVisualStyleBackColor = true;
+            this.buttonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
             // 
             // tabControl1
             // 
@@ -476,6 +489,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 644);
+            this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.textLog);
             this.Controls.Add(this.checkRecursive);
             this.Controls.Add(this.buttonOutputFolder);
@@ -526,6 +540,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox checkRecursive;
         private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabLinkReplacer;
         private System.Windows.Forms.TabPage tabDNATool;

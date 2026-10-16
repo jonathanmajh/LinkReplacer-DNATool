@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LinkReplacer {
     public partial class Form1 : Form
@@ -11,6 +14,14 @@ namespace LinkReplacer {
         List<string> idList = new List<string>();
         List<string> addressList = new List<string>();
         List<string> fileList = new List<string>();
+        private CancellationTokenSource _cts;
+
+        private sealed class BatchProgress
+        {
+            public int Done;
+            public int Total;
+            public string LogText = "";
+        }
 
         private void ProgressBarDrawString(string value) //Draws the percentage on the progressbar
         {
@@ -20,6 +31,10 @@ namespace LinkReplacer {
 
         private void ProgressBarNoAnimation(int value) //Prevent the progressbar from lagging behind, disables the animation by going backwards
         {
+            if (value < 0)
+                value = 0;
+            if (value > progressBar1.Maximum)
+                value = progressBar1.Maximum;
             if (value == progressBar1.Maximum)
             {
                 progressBar1.Maximum = value + 1;
@@ -30,6 +45,32 @@ namespace LinkReplacer {
                 progressBar1.Value = value + 1;
             }
             progressBar1.Value = value;
+        }
+
+        private void SetBusy(bool busy)
+        {
+            buttonLinkReplacer.Enabled = !busy;
+            buttonDNATool.Enabled = !busy;
+            buttonLinkGrabber.Enabled = !busy;
+            buttonFiles.Enabled = !busy;
+            buttonFolder.Enabled = !busy;
+            buttonOutputFolder.Enabled = !busy;
+            comboSite.Enabled = !busy;
+            comboDNATool.Enabled = !busy;
+            if (buttonCancel != null)
+                buttonCancel.Enabled = busy;
+        }
+
+        private void ButtonCancel_Click(object sender, EventArgs e)
+        {
+            try { _cts?.Cancel(); } catch { }
+        }
+
+        private static string ProgressPercent(int done, int total)
+        {
+            if (total <= 0)
+                return "0%";
+            return (done * 100 / total) + "%";
         }
 
         public Form1()
@@ -215,7 +256,7 @@ namespace LinkReplacer {
             }
         }
 
-        private void ButtonLinkReplacer_Click(object sender, EventArgs e) //Finds and replaces matching strings in PDF hyperlinks
+        private async void ButtonLinkReplacer_Click(object sender, EventArgs e) //Finds and replaces matching strings in PDF hyperlinks
         {
             RefreshFileList(verbose: false);
             if (fileList.Count == 0)
@@ -244,43 +285,77 @@ namespace LinkReplacer {
                 mode = 2; //Add to end of strings that contain the find string
             }
 
+            List<string> files = fileList.ToList(); //Snapshot so the list can't mutate mid-run
+            List<string> outputs = files.Select(GetOutputFilePath).ToList(); //Pre-create output dirs on UI thread
+
             //Initializes progress bar and log
             progressBar1.Value = 0;
-            progressBar1.Maximum = fileList.Count;
+            progressBar1.Maximum = Math.Max(1, files.Count);
             ProgressBarDrawString("0%");
             textLog.Clear();
 
-            for (int i = 0; i < fileList.Count; i++)
+            try { _cts?.Dispose(); } catch { }
+            _cts = new CancellationTokenSource();
+            CancellationToken token = _cts.Token;
+            SetBusy(true);
+
+            System.IProgress<BatchProgress> progress = new System.Progress<BatchProgress>(u =>
             {
-                string filePath = fileList[i];
-                string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
-                string fileOutputPath = GetOutputFilePath(filePath);
+                ProgressBarNoAnimation(u.Done);
+                ProgressBarDrawString(ProgressPercent(u.Done, u.Total));
+                if (!string.IsNullOrEmpty(u.LogText))
+                    textLog.AppendText(u.LogText);
+                textLog.ScrollToCaret();
+            });
 
-                textLog.AppendText(fileName); //Separate refresh in case it gets stuck reading the PDF
-                textLog.Refresh();
-                try
+            bool cancelled = false;
+            try
+            {
+                int done = 0;
+                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token };
+                await Task.Run(() => Parallel.For(0, files.Count, options, i =>
                 {
-                    textLog.AppendText(Main.LinkReplacer(filePath, fileOutputPath, find, replace, mode) + "\n"); //Replaces links in current PDF and outputs count
-                } catch
-                {
-                    textLog.AppendText(" - ERROR: Cannot read file " + fileName + "\n");
-                }
-                
-                textLog.Refresh();
-                textLog.ScrollToCaret(); //Scroll to bottom
-
-                //Progresses the progress bar
-                ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
-                ProgressBarDrawString(i * 100 / fileList.Count + "%");
+                    options.CancellationToken.ThrowIfCancellationRequested();
+                    string name = Path.GetFileName(files[i]);
+                    string line;
+                    try
+                    {
+                        line = name + Main.LinkReplacer(files[i], outputs[i], find, replace, mode) + "\n"; //Replaces links in current PDF and outputs count
+                    }
+                    catch (Exception ex)
+                    {
+                        line = " - ERROR: Cannot read file " + name + " (" + ex.Message + ")\n";
+                    }
+                    int d = Interlocked.Increment(ref done);
+                    progress.Report(new BatchProgress { Done = d, Total = files.Count, LogText = line });
+                }), token);
             }
-            textLog.AppendText("Done! :)");
-            textLog.Refresh();
-            ProgressBarDrawString("100% Done! :)");
+            catch (OperationCanceledException)
+            {
+                cancelled = true;
+            }
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: " + ex.Message + "\n");
+            }
+            finally
+            {
+                SetBusy(false);
+                try { _cts?.Dispose(); } catch { }
+                _cts = null;
+            }
+
+            if (cancelled)
+                textLog.AppendText("Cancelled.\n");
+            else
+                textLog.AppendText("Done! :)");
+            textLog.ScrollToCaret();
+            ProgressBarDrawString(cancelled ? ProgressPercent(progressBar1.Value, progressBar1.Maximum) : "100% Done! :)");
 
             Main.UnmapSharePoint(); //Unmaps B: drive in case files were grabbed from SharePoint
         }
 
-        private void ButtonDNATool_Click(object sender, EventArgs e) //Generates a CSV file of all the assets in the PDFs
+        private async void ButtonDNATool_Click(object sender, EventArgs e) //Generates a CSV file of all the assets in the PDFs
         {
             RefreshFileList(verbose: false);
             int index = comboDNATool.SelectedIndex;
@@ -294,47 +369,105 @@ namespace LinkReplacer {
                 return;
             }
 
-
+            string siteAddress = addressList[index];
+            string csvPath = Path.Combine(textOutputFolder.Text, idList[index] + ".csv");
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            using (StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + ".csv", FileMode.Create), Encoding.UTF8))
-            {
+
+            List<string> files = fileList.ToList(); //Snapshot so the list can't mutate mid-run
+
             //Initializes progress bar and log
             progressBar1.Value = 0;
-            progressBar1.Maximum = fileList.Count;
+            progressBar1.Maximum = Math.Max(1, files.Count);
             ProgressBarDrawString("0%");
             textLog.Clear();
 
-            for (int i = 0; i < fileList.Count; i++)
+            try { _cts?.Dispose(); } catch { }
+            _cts = new CancellationTokenSource();
+            CancellationToken token = _cts.Token;
+            SetBusy(true);
+
+            System.IProgress<BatchProgress> progress = new System.Progress<BatchProgress>(u =>
             {
-                string filePath = fileList[i];
-                string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
+                ProgressBarNoAnimation(u.Done);
+                ProgressBarDrawString(ProgressPercent(u.Done, u.Total));
+                if (!string.IsNullOrEmpty(u.LogText))
+                    textLog.AppendText(u.LogText);
+                textLog.ScrollToCaret();
+            });
 
-                textLog.AppendText(fileName + "\n"); //Separate refresh in case it gets stuck reading the PDF
-                textLog.Refresh();
-                try
+            string[] logs = new string[files.Count];
+            List<string>[] csvRows = new List<string>[files.Count];
+            bool cancelled = false;
+            try
+            {
+                int done = 0;
+                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token };
+                await Task.Run(() => Parallel.For(0, files.Count, options, i =>
                 {
-                    textLog.AppendText(Main.DNATool(filePath, fileName, addressList[index], writer)); //Writes found assets to CSV and outputs any errors
-                } catch
+                    options.CancellationToken.ThrowIfCancellationRequested();
+                    string fileName = Path.GetFileName(files[i]);
+                    try
+                    {
+                        Main.DnaToolResult r = Main.DNATool(files[i], fileName, siteAddress); //Scans PDF and returns assets
+                        logs[i] = fileName + "\n" + r.Log;
+                        csvRows[i] = r.Rows;
+                    }
+                    catch (Exception ex)
+                    {
+                        logs[i] = "ERROR: Cannot read file " + fileName + " (" + ex.Message + ")\n";
+                        csvRows[i] = new List<string>();
+                    }
+                    int d = Interlocked.Increment(ref done);
+                    progress.Report(new BatchProgress { Done = d, Total = files.Count, LogText = logs[i] });
+                }), token);
+            }
+            catch (OperationCanceledException)
+            {
+                cancelled = true;
+            }
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: " + ex.Message + "\n");
+                cancelled = true;
+            }
+
+            //Single-threaded ordered CSV write so lines never interleave.
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(new FileStream(csvPath, FileMode.Create), Encoding.UTF8))
                 {
-                    textLog.AppendText("ERROR: Cannot read file " + fileName + "\n");
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        List<string> rows = csvRows[i];
+                        if (rows == null)
+                            continue;
+                        foreach (string row in rows)
+                            writer.WriteLine(row);
+                    }
                 }
-                
-                textLog.Refresh();
-                textLog.ScrollToCaret(); //Scroll to bottom
-
-                //Progresses the progress bar
-                ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
-                ProgressBarDrawString(i * 100 / fileList.Count + "%");
             }
-            textLog.AppendText("Done! :)");
-            textLog.Refresh();
-            ProgressBarDrawString("100% Done! :)");
-
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: Cannot write CSV (" + ex.Message + ")\n");
             }
+            finally
+            {
+                SetBusy(false);
+                try { _cts?.Dispose(); } catch { }
+                _cts = null;
+            }
+
+            if (cancelled)
+                textLog.AppendText("Cancelled (partial CSV kept).\n");
+            else
+                textLog.AppendText("Done! :)");
+            textLog.ScrollToCaret();
+            ProgressBarDrawString(cancelled ? ProgressPercent(progressBar1.Value, progressBar1.Maximum) : "100% Done! :)");
+
             Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
         }
 
-        private void ButtonLinkGrabber_Click(object sender, EventArgs e) //Grabs every hyperlink from the selected PDFs
+        private async void ButtonLinkGrabber_Click(object sender, EventArgs e) //Grabs every hyperlink from the selected PDFs
         {
             RefreshFileList(verbose: false);
             int index = comboDNATool.SelectedIndex;
@@ -349,45 +482,100 @@ namespace LinkReplacer {
                 return;
             }
 
-
+            string csvPath = Path.Combine(textOutputFolder.Text, idList[index] + " - Links.csv");
             Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
-            using (StreamWriter writer = new StreamWriter(new FileStream(textOutputFolder.Text + @"\" + idList[index] + " - Links.csv", FileMode.Create), Encoding.UTF8))
-            {
+
+            List<string> files = fileList.ToList(); //Snapshot so the list can't mutate mid-run
 
             //Initializes progress bar and log
             progressBar1.Value = 0;
-            progressBar1.Maximum = fileList.Count;
+            progressBar1.Maximum = Math.Max(1, files.Count);
             ProgressBarDrawString("0%");
             textLog.Clear();
 
-            for (int i = 0; i < fileList.Count; i++)
+            try { _cts?.Dispose(); } catch { }
+            _cts = new CancellationTokenSource();
+            CancellationToken token = _cts.Token;
+            SetBusy(true);
+
+            System.IProgress<BatchProgress> progress = new System.Progress<BatchProgress>(u =>
             {
-                string filePath = fileList[i];
-                string fileName = filePath.Substring(filePath.LastIndexOf(@"\") + 1);
+                ProgressBarNoAnimation(u.Done);
+                ProgressBarDrawString(ProgressPercent(u.Done, u.Total));
+                if (!string.IsNullOrEmpty(u.LogText))
+                    textLog.AppendText(u.LogText);
+                textLog.ScrollToCaret();
+            });
 
-                textLog.AppendText(fileName); //Separate refresh in case it gets stuck reading the PDF
-                textLog.Refresh();
-                try
+            string[] logs = new string[files.Count];
+            List<string>[] csvRows = new List<string>[files.Count];
+            bool cancelled = false;
+            try
+            {
+                int done = 0;
+                var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token };
+                await Task.Run(() => Parallel.For(0, files.Count, options, i =>
                 {
-                    textLog.AppendText(Main.LinkGrabber(filePath, fileName, writer)); //Writes found links to CSV
-                }
-                catch
+                    options.CancellationToken.ThrowIfCancellationRequested();
+                    string fileName = Path.GetFileName(files[i]);
+                    try
+                    {
+                        Main.LinkGrabberResult r = Main.LinkGrabber(files[i], fileName); //Scans PDF and returns links
+                        logs[i] = fileName + r.Log;
+                        csvRows[i] = r.Rows;
+                    }
+                    catch (Exception ex)
+                    {
+                        logs[i] = fileName + " - ERROR: Cannot read file " + fileName + " (" + ex.Message + ")\n";
+                        csvRows[i] = new List<string>();
+                    }
+                    int d = Interlocked.Increment(ref done);
+                    progress.Report(new BatchProgress { Done = d, Total = files.Count, LogText = logs[i] });
+                }), token);
+            }
+            catch (OperationCanceledException)
+            {
+                cancelled = true;
+            }
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: " + ex.Message + "\n");
+                cancelled = true;
+            }
+
+            //Single-threaded ordered CSV write so lines never interleave.
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(new FileStream(csvPath, FileMode.Create), Encoding.UTF8))
                 {
-                    textLog.AppendText(" - ERROR: Cannot read file " + fileName + "\n");
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        List<string> rows = csvRows[i];
+                        if (rows == null)
+                            continue;
+                        foreach (string row in rows)
+                            writer.WriteLine(row);
+                    }
                 }
-
-                textLog.Refresh();
-                textLog.ScrollToCaret(); //Scroll to bottom
-
-                //Progresses the progress bar
-                ProgressBarNoAnimation(progressBar1.Value + progressBar1.Step);
-                ProgressBarDrawString(i * 100 / fileList.Count + "%");
             }
-            textLog.AppendText("Done! :)");
-            textLog.Refresh();
-            ProgressBarDrawString("100% Done! :)");
-
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: Cannot write CSV (" + ex.Message + ")\n");
             }
+            finally
+            {
+                SetBusy(false);
+                try { _cts?.Dispose(); } catch { }
+                _cts = null;
+            }
+
+            if (cancelled)
+                textLog.AppendText("Cancelled (partial CSV kept).\n");
+            else
+                textLog.AppendText("Done! :)");
+            textLog.ScrollToCaret();
+            ProgressBarDrawString(cancelled ? ProgressPercent(progressBar1.Value, progressBar1.Maximum) : "100% Done! :)");
+
             Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
         }
     }

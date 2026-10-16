@@ -11,6 +11,17 @@ namespace LinkReplacer
 {
     public class Main
     {
+        public sealed class DnaToolResult
+        {
+            public string Log = "";
+            public List<string> Rows = new List<string>();
+        }
+
+        public sealed class LinkGrabberResult
+        {
+            public string Log = "";
+            public List<string> Rows = new List<string>();
+        }
         public static void UnmapSharePoint() //Unmaps B: drive
         {
             ProcessStartInfo cmdStartInfo = new ProcessStartInfo("cmd.exe");
@@ -58,8 +69,9 @@ namespace LinkReplacer
             return fileList;
         }
 
-        public static string DNATool(string filePath, string fileName, string siteAddress, StreamWriter writer) //Writes found assets to CSV and outputs any errors
+        public static DnaToolResult DNATool(string filePath, string fileName, string siteAddress) //Scans one PDF and returns found assets
         {
+            DnaToolResult result = new DnaToolResult();
             string error = "";
             PdfReader reader = new PdfReader(filePath);
             try
@@ -104,7 +116,7 @@ namespace LinkReplacer
                         if (index != -1) //If it's a blue box
                         {
                             string assetNum = foundURL.Substring(index + 9, 5); //From counting
-                            writer.WriteLine("\"" + assetNum + "\",,\"" + siteAddress + "/" + fileName + "\",,\"" + fileName + "\""); //Adds the asset to the CSV file
+                            result.Rows.Add("\"" + assetNum + "\",,\"" + siteAddress + "/" + fileName + "\",,\"" + fileName + "\""); //Adds the asset to the CSV rows
                         }
                     }
                 }
@@ -114,7 +126,8 @@ namespace LinkReplacer
             {
                 try { reader.Close(); } catch { }
             }
-            return error;
+            result.Log = error;
+            return result;
         }
 
         public static string LinkReplacer(string filePath, string fileOutputPath, string find, string replace, int mode) //Replaces links in current PDF and outputs count
@@ -244,8 +257,9 @@ namespace LinkReplacer
             }
         }
 
-        public static string LinkGrabber(string filePath, string fileName, StreamWriter writer) //Writes found links to CSV and outputs count
+        public static LinkGrabberResult LinkGrabber(string filePath, string fileName) //Scans one PDF and returns found links
         {
+            LinkGrabberResult result = new LinkGrabberResult();
             string error = "\n";
             int foundLinks = 0; //Number of links found
             PdfReader reader = new PdfReader(filePath);
@@ -292,7 +306,7 @@ namespace LinkReplacer
                                 {
                                     if (foundURL.Substring(0, 4).Equals("http")) //If it's an actual link
                                     {
-                                        writer.WriteLine("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV file
+                                        result.Rows.Add("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV rows
                                         foundLinks++;
                                     }
                                 }
@@ -311,7 +325,8 @@ namespace LinkReplacer
             {
                 try { reader.Close(); } catch { }
             }
-            return " - " + foundLinks + " link(s) found" + error;
+            result.Log = " - " + foundLinks + " link(s) found" + error;
+            return result;
         }
     }
 }
