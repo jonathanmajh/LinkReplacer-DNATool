@@ -16,6 +16,7 @@ namespace LinkReplacer {
         List<string> addressList = new List<string>();
         List<string> fileList = new List<string>();
         private CancellationTokenSource _cts;
+        private ToolTip _threadTip;
 
         private sealed class BatchProgress
         {
@@ -158,6 +159,22 @@ namespace LinkReplacer {
                     numericThreads.Maximum = 64;
                     numericThreads.Value = Math.Max(1, Math.Min(64, Environment.ProcessorCount));
                 }
+            }
+            catch { }
+            try
+            {
+                _threadTip = new ToolTip
+                {
+                    AutoPopDelay = 15000,
+                    InitialDelay = 400,
+                    ReshowDelay = 100,
+                    ShowAlways = true
+                };
+                const string threadTip = "How many PDF files to process at once.\n\nEach thread holds a full PDF in memory, so memory use grows with this number. Lower to 2-4 for large PDFs if memory gets high; raise toward CPU count for many small PDFs.";
+                if (numericThreads != null)
+                    _threadTip.SetToolTip(numericThreads, threadTip);
+                if (labelThreads != null)
+                    _threadTip.SetToolTip(labelThreads, threadTip);
             }
             catch { }
             Main.UnmapSharePoint();
