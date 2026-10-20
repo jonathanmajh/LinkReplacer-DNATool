@@ -60,6 +60,10 @@
             this.label6 = new System.Windows.Forms.Label();
             this.comboDNATool = new System.Windows.Forms.ComboBox();
             this.buttonDNATool = new System.Windows.Forms.Button();
+            this.tabFlatten = new System.Windows.Forms.TabPage();
+            this.buttonFlattenCheck = new System.Windows.Forms.Button();
+            this.buttonFlatten = new System.Windows.Forms.Button();
+            this.labelFlattenInfo = new System.Windows.Forms.Label();
             this.buttonOutputFolder = new System.Windows.Forms.Button();
             this.textOutputFolder = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -73,6 +77,7 @@
             this.tabControl1.SuspendLayout();
             this.tabLinkReplacer.SuspendLayout();
             this.tabDNATool.SuspendLayout();
+            this.tabFlatten.SuspendLayout();
             this.SuspendLayout();
             // 
             // comboSite
@@ -302,6 +307,7 @@
             // 
             this.tabControl1.Controls.Add(this.tabLinkReplacer);
             this.tabControl1.Controls.Add(this.tabDNATool);
+            this.tabControl1.Controls.Add(this.tabFlatten);
             this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Location = new System.Drawing.Point(12, 282);
@@ -519,6 +525,52 @@
             this.radioAddEnd.Text = "Add to end";
             this.radioAddEnd.UseVisualStyleBackColor = true;
             // 
+            // tabFlatten
+            // 
+            this.tabFlatten.BackColor = System.Drawing.SystemColors.Control;
+            this.tabFlatten.Controls.Add(this.buttonFlatten);
+            this.tabFlatten.Controls.Add(this.buttonFlattenCheck);
+            this.tabFlatten.Controls.Add(this.labelFlattenInfo);
+            this.tabFlatten.Location = new System.Drawing.Point(4, 25);
+            this.tabFlatten.Name = "tabFlatten";
+            this.tabFlatten.Padding = new System.Windows.Forms.Padding(3);
+            this.tabFlatten.Size = new System.Drawing.Size(770, 140);
+            this.tabFlatten.TabIndex = 2;
+            this.tabFlatten.Text = "PDF Flatten";
+            // 
+            // labelFlattenInfo
+            // 
+            this.labelFlattenInfo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelFlattenInfo.AutoSize = false;
+            this.labelFlattenInfo.Location = new System.Drawing.Point(10, 8);
+            this.labelFlattenInfo.Name = "labelFlattenInfo";
+            this.labelFlattenInfo.Size = new System.Drawing.Size(744, 56);
+            this.labelFlattenInfo.TabIndex = 0;
+            this.labelFlattenInfo.Text = "Flatten burns markup annotations (shapes, stamps, notes) and form fields into the page content.\r\nHyperlinks are preserved. Already-flat files are not written again, and originals are never modified.";
+            // 
+            // buttonFlattenCheck
+            // 
+            this.buttonFlattenCheck.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.buttonFlattenCheck.Location = new System.Drawing.Point(217, 100);
+            this.buttonFlattenCheck.Name = "buttonFlattenCheck";
+            this.buttonFlattenCheck.Size = new System.Drawing.Size(160, 29);
+            this.buttonFlattenCheck.TabIndex = 1;
+            this.buttonFlattenCheck.Text = "Check Unflattened";
+            this.buttonFlattenCheck.UseVisualStyleBackColor = true;
+            this.buttonFlattenCheck.Click += new System.EventHandler(this.ButtonFlattenCheck_Click);
+            // 
+            // buttonFlatten
+            // 
+            this.buttonFlatten.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.buttonFlatten.Location = new System.Drawing.Point(393, 100);
+            this.buttonFlatten.Name = "buttonFlatten";
+            this.buttonFlatten.Size = new System.Drawing.Size(160, 29);
+            this.buttonFlatten.TabIndex = 2;
+            this.buttonFlatten.Text = "Flatten PDFs";
+            this.buttonFlatten.UseVisualStyleBackColor = true;
+            this.buttonFlatten.Click += new System.EventHandler(this.ButtonFlatten_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -554,6 +606,8 @@
             this.tabLinkReplacer.PerformLayout();
             this.tabDNATool.ResumeLayout(false);
             this.tabDNATool.PerformLayout();
+            this.tabFlatten.ResumeLayout(false);
+            this.tabFlatten.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -583,6 +637,10 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabLinkReplacer;
         private System.Windows.Forms.TabPage tabDNATool;
+        private System.Windows.Forms.TabPage tabFlatten;
+        private System.Windows.Forms.Button buttonFlattenCheck;
+        private System.Windows.Forms.Button buttonFlatten;
+        private System.Windows.Forms.Label labelFlattenInfo;
         private System.Windows.Forms.Button buttonOutputFolder;
         private System.Windows.Forms.TextBox textOutputFolder;
         private System.Windows.Forms.Label label2;

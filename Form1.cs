@@ -103,6 +103,8 @@ namespace LinkReplacer {
             buttonLinkReplacer.Enabled = !busy;
             buttonDNATool.Enabled = !busy;
             buttonLinkGrabber.Enabled = !busy;
+            buttonFlattenCheck.Enabled = !busy;
+            buttonFlatten.Enabled = !busy;
             buttonFiles.Enabled = !busy;
             buttonFolder.Enabled = !busy;
             buttonOutputFolder.Enabled = !busy;
@@ -693,6 +695,212 @@ namespace LinkReplacer {
 
             if (cancelled)
                 textLog.AppendText("Cancelled (partial CSV kept).\n");
+            else
+                textLog.AppendText("Done! :)");
+            textLog.ScrollToCaret();
+            ProgressBarDrawString(cancelled ? ProgressPercent(progressBar1.Value, progressBar1.Maximum) : "100% Done! :)");
+
+            Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
+        }
+
+        private async void ButtonFlattenCheck_Click(object sender, EventArgs e) //Exports a CSV listing all PDFs that still need flattening
+        {
+            RefreshFileList(verbose: false);
+            if (fileList.Count == 0)
+            {
+                MessageBox.Show("No files found!", "ERROR");
+                return;
+            }
+
+            string csvPath = Path.Combine(textOutputFolder.Text, "Unflattened PDFs.csv");
+            Directory.CreateDirectory(textOutputFolder.Text); //Output folder for CSV
+
+            List<string> files = fileList.ToList(); //Snapshot so the list can't mutate mid-run
+
+            //Initializes progress bar and log
+            progressBar1.Value = 0;
+            progressBar1.Maximum = Math.Max(1, files.Count);
+            ProgressBarDrawString("0%");
+            textLog.Clear();
+
+            try { _cts?.Dispose(); } catch { }
+            _cts = new CancellationTokenSource();
+            CancellationToken token = _cts.Token;
+            SetBusy(true);
+
+            System.IProgress<BatchProgress> progress = new System.Progress<BatchProgress>(u =>
+            {
+                ProgressBarNoAnimation(u.Done);
+                ProgressBarDrawString(ProgressPercent(u.Done, u.Total));
+                if (!string.IsNullOrEmpty(u.LogText))
+                    textLog.AppendText(u.LogText);
+                textLog.ScrollToCaret();
+            });
+
+            string[] logs = new string[files.Count];
+            List<string>[] csvRows = new List<string>[files.Count];
+            bool cancelled = false;
+            try
+            {
+                int done = 0;
+                var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
+                var ordered = OrderLargestFirst(files);
+                var partitioner = Partitioner.Create(ordered, EnumerablePartitionerOptions.NoBuffering);
+                await Task.Run(() => Parallel.ForEach(partitioner, options, item =>
+                {
+                    options.CancellationToken.ThrowIfCancellationRequested();
+                    int i = item.Index;
+                    string fileName = Path.GetFileName(item.Path);
+                    try
+                    {
+                        Main.FlattenCheckResult r = Main.FlattenCheck(item.Path, fileName); //Scans PDF and returns what would need flattening
+                        logs[i] = fileName + r.Log;
+                        csvRows[i] = r.Rows;
+                    }
+                    catch (Exception ex)
+                    {
+                        logs[i] = fileName + " - ERROR: Cannot read file " + fileName + " (" + ex.Message + ")\n";
+                        csvRows[i] = new List<string>();
+                    }
+                    int d = Interlocked.Increment(ref done);
+                    progress.Report(new BatchProgress { Done = d, Total = files.Count, LogText = logs[i] });
+                }), token);
+            }
+            catch (OperationCanceledException)
+            {
+                cancelled = true;
+            }
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: " + ex.Message + "\n");
+                cancelled = true;
+            }
+
+            //Single-threaded ordered CSV write so lines never interleave.
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(new FileStream(csvPath, FileMode.Create), Encoding.UTF8))
+                {
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        List<string> rows = csvRows[i];
+                        if (rows == null)
+                            continue;
+                        foreach (string row in rows)
+                            writer.WriteLine(row);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: Cannot write CSV (" + ex.Message + ")\n");
+            }
+            finally
+            {
+                SetBusy(false);
+                try { _cts?.Dispose(); } catch { }
+                _cts = null;
+                try
+                {
+                    if (logs != null) Array.Clear(logs, 0, logs.Length);
+                    if (csvRows != null) Array.Clear(csvRows, 0, csvRows.Length);
+                }
+                catch { }
+                logs = null;
+                csvRows = null;
+                files = null;
+                ReleaseBatchMemory();
+            }
+
+            if (cancelled)
+                textLog.AppendText("Cancelled (CSV kept).\n");
+            else
+                textLog.AppendText("Done! :)");
+            textLog.ScrollToCaret();
+            ProgressBarDrawString(cancelled ? ProgressPercent(progressBar1.Value, progressBar1.Maximum) : "100% Done! :)");
+
+            Main.UnmapSharePoint(); // Unmaps B: drive in case files were grabbed from SharePoint
+        }
+
+        private async void ButtonFlatten_Click(object sender, EventArgs e) //Flattens markup annotations and form fields into the page, links stay clickable
+        {
+            RefreshFileList(verbose: false);
+            if (fileList.Count == 0)
+            {
+                MessageBox.Show("No files found!", "ERROR");
+                return;
+            }
+
+            Directory.CreateDirectory(textOutputFolder.Text); //Output folder for the flattened PDFs
+
+            List<string> files = fileList.ToList(); //Snapshot so the list can't mutate mid-run
+            List<string> outputs = files.Select(GetOutputFilePath).ToList(); //Pre-create output dirs on UI thread
+
+            //Initializes progress bar and log
+            progressBar1.Value = 0;
+            progressBar1.Maximum = Math.Max(1, files.Count);
+            ProgressBarDrawString("0%");
+            textLog.Clear();
+
+            try { _cts?.Dispose(); } catch { }
+            _cts = new CancellationTokenSource();
+            CancellationToken token = _cts.Token;
+            SetBusy(true);
+
+            System.IProgress<BatchProgress> progress = new System.Progress<BatchProgress>(u =>
+            {
+                ProgressBarNoAnimation(u.Done);
+                ProgressBarDrawString(ProgressPercent(u.Done, u.Total));
+                if (!string.IsNullOrEmpty(u.LogText))
+                    textLog.AppendText(u.LogText);
+                textLog.ScrollToCaret();
+            });
+
+            bool cancelled = false;
+            try
+            {
+                int done = 0;
+                var options = new ParallelOptions { MaxDegreeOfParallelism = GetMaxThreads(), CancellationToken = token };
+                var ordered = OrderLargestFirst(files);
+                var partitioner = Partitioner.Create(ordered, EnumerablePartitionerOptions.NoBuffering);
+                await Task.Run(() => Parallel.ForEach(partitioner, options, item =>
+                {
+                    options.CancellationToken.ThrowIfCancellationRequested();
+                    int i = item.Index;
+                    string name = Path.GetFileName(item.Path);
+                    string line;
+                    try
+                    {
+                        line = name + Main.FlattenPDF(item.Path, outputs[i]) + "\n"; //Flattens the current PDF and returns the log line
+                    }
+                    catch (Exception ex)
+                    {
+                        line = " - ERROR: Cannot flatten file " + name + " (" + ex.Message + ")\n";
+                    }
+                    int d = Interlocked.Increment(ref done);
+                    progress.Report(new BatchProgress { Done = d, Total = files.Count, LogText = line });
+                }), token);
+            }
+            catch (OperationCanceledException)
+            {
+                cancelled = true;
+            }
+            catch (Exception ex)
+            {
+                textLog.AppendText("ERROR: " + ex.Message + "\n");
+            }
+            finally
+            {
+                SetBusy(false);
+                try { _cts?.Dispose(); } catch { }
+                _cts = null;
+                files = null;
+                outputs = null;
+                ReleaseBatchMemory();
+            }
+
+            if (cancelled)
+                textLog.AppendText("Cancelled.\n");
             else
                 textLog.AppendText("Done! :)");
             textLog.ScrollToCaret();
