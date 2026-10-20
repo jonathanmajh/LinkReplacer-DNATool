@@ -11,6 +11,27 @@ namespace LinkReplacer
 {
     public class Main
     {
+        public sealed class DnaToolResult
+        {
+            public string Log = "";
+            public List<string> Rows = new List<string>();
+        }
+
+        public sealed class LinkGrabberResult
+        {
+            public string Log = "";
+            public List<string> Rows = new List<string>();
+        }
+
+        public sealed class FlattenCheckResult
+        {
+            public string Log = "";
+            public List<string> Rows = new List<string>();
+            public bool IsFlattened = true; //True when nothing needs flattening
+            public int NonLinkAnnotations = 0; //Markup annotations that flattening would bake into the page
+            public int TotalAnnotations = 0; //All annotations found (links included, popups included)
+            public string Reasons = ""; //e.g. "FreeText=16; Square=33; form fields=3"
+        }
         public static void UnmapSharePoint() //Unmaps B: drive
         {
             ProcessStartInfo cmdStartInfo = new ProcessStartInfo("cmd.exe");
@@ -58,8 +79,9 @@ namespace LinkReplacer
             return fileList;
         }
 
-        public static string DNATool(string filePath, string fileName, string siteAddress, StreamWriter writer) //Writes found assets to CSV and outputs any errors
+        public static DnaToolResult DNATool(string filePath, string fileName, string siteAddress) //Scans one PDF and returns found assets
         {
+            DnaToolResult result = new DnaToolResult();
             string error = "";
             PdfReader reader = new PdfReader(filePath);
             try
@@ -104,7 +126,7 @@ namespace LinkReplacer
                         if (index != -1) //If it's a blue box
                         {
                             string assetNum = foundURL.Substring(index + 9, 5); //From counting
-                            writer.WriteLine("\"" + assetNum + "\",,\"" + siteAddress + "/" + fileName + "\",,\"" + fileName + "\""); //Adds the asset to the CSV file
+                            result.Rows.Add("\"" + assetNum + "\",,\"" + siteAddress + "/" + fileName + "\",,\"" + fileName + "\""); //Adds the asset to the CSV rows
                         }
                     }
                 }
@@ -113,8 +135,10 @@ namespace LinkReplacer
             finally
             {
                 try { reader.Close(); } catch { }
+                try { ((IDisposable)reader).Dispose(); } catch { }
             }
-            return error;
+            result.Log = error;
+            return result;
         }
 
         public static string LinkReplacer(string filePath, string fileOutputPath, string find, string replace, int mode) //Replaces links in current PDF and outputs count
@@ -149,7 +173,6 @@ namespace LinkReplacer
                 reader = new PdfReader(filePath);
                 outputStream = new FileStream(actualOutputPath, FileMode.Create);
                 stamper = new PdfStamper(reader, outputStream);
-                outputStream = null; // Ownership transferred to stamper
 
             for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
             {
@@ -216,13 +239,18 @@ namespace LinkReplacer
                 stamper = null;
             } else
             {
-                stamper.Dispose();
+                try { stamper.Dispose(); } catch { }
                 stamper = null;
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                outputStream = null;
                 File.Delete(actualOutputPath);
             }
 
                 try { reader.Close(); } catch { }
+                try { if (reader is IDisposable rd) rd.Dispose(); } catch { }
                 reader = null;
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                outputStream = null;
 
                 if (inPlace && replaceNum > 0)
                 {
@@ -238,14 +266,16 @@ namespace LinkReplacer
                 try { if (stamper != null) stamper.Dispose(); } catch { }
                 try { if (outputStream != null) outputStream.Dispose(); } catch { }
                 try { if (reader != null) reader.Close(); } catch { }
+                try { if (reader is IDisposable rd) rd.Dispose(); } catch { }
                 // Remove the partial/temp output; never touch the original on failure.
                 try { if (actualOutputPath != null && File.Exists(actualOutputPath)) File.Delete(actualOutputPath); } catch { }
                 throw;
             }
         }
 
-        public static string LinkGrabber(string filePath, string fileName, StreamWriter writer) //Writes found links to CSV and outputs count
+        public static LinkGrabberResult LinkGrabber(string filePath, string fileName) //Scans one PDF and returns found links
         {
+            LinkGrabberResult result = new LinkGrabberResult();
             string error = "\n";
             int foundLinks = 0; //Number of links found
             PdfReader reader = new PdfReader(filePath);
@@ -292,7 +322,7 @@ namespace LinkReplacer
                                 {
                                     if (foundURL.Substring(0, 4).Equals("http")) //If it's an actual link
                                     {
-                                        writer.WriteLine("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV file
+                                        result.Rows.Add("\"" + foundURL + "\",\"" + fileName + "\""); //Adds the link to the CSV rows
                                         foundLinks++;
                                     }
                                 }
@@ -310,8 +340,180 @@ namespace LinkReplacer
             finally
             {
                 try { reader.Close(); } catch { }
+                try { ((IDisposable)reader).Dispose(); } catch { }
             }
-            return " - " + foundLinks + " link(s) found" + error;
+            result.Log = " - " + foundLinks + " link(s) found" + error;
+            return result;
+        }
+
+        public static FlattenCheckResult FlattenCheck(string filePath, string fileName) //Scans one PDF and reports annotations that still need flattening
+        {
+            FlattenCheckResult result = null;
+            PdfReader reader = new PdfReader(filePath);
+            try
+            {
+                result = CheckFlattening(reader);
+            }
+            finally
+            {
+                try { reader.Close(); } catch { }
+                try { ((IDisposable)reader).Dispose(); } catch { }
+            }
+
+            if (!result.IsFlattened) //Only unflattened files are listed in the CSV
+            {
+                //Columns: filename, reason breakdown, non-link annotations, total annotations
+                result.Rows.Add("\"" + fileName + "\",\"" + result.Reasons + "\",\"" + result.NonLinkAnnotations + "\",\"" + result.TotalAnnotations + "\"");
+            }
+            return result;
+        }
+
+        private static FlattenCheckResult CheckFlattening(PdfReader reader) //Counts the annotations (and form fields) that flattening would have to bake into the pages
+        {
+            FlattenCheckResult result = new FlattenCheckResult();
+            string warnings = "";
+            SortedDictionary<string, int> breakdown = new SortedDictionary<string, int>();
+
+            for (int page = 1; page <= reader.NumberOfPages; page++) //Loops through all the pages
+            {
+                PdfArray annotArray = reader.GetPageN(page).GetAsArray(PdfName.ANNOTS);
+
+                if (annotArray == null) //No annotations on that page
+                {
+                    continue;
+                }
+
+                try
+                {
+                    foreach (PdfObject annot in annotArray) //Loops through every annotation on that page
+                    {
+                        PdfDictionary annotDict = PdfReader.GetPdfObject(annot) as PdfDictionary;
+                        if (annotDict == null)
+                            continue;
+
+                        PdfObject subtype = annotDict.Get(PdfName.SUBTYPE);
+                        if (subtype == null)
+                            continue;
+
+                        string subtypeName = subtype.ToString().Substring(1); //"/FreeText" -> "FreeText"
+                        result.TotalAnnotations++;
+
+                        if (subtypeName.Equals("Link") || subtypeName.Equals("Popup")) //Links must survive flattening; popups are invisible hover windows tied to their parent
+                            continue;
+
+                        result.NonLinkAnnotations++;
+                        if (breakdown.ContainsKey(subtypeName))
+                            breakdown[subtypeName]++;
+                        else
+                            breakdown[subtypeName] = 1;
+                    }
+                }
+                catch
+                {
+                    warnings += "  WARNING: Problem reading page " + page + "\n";
+                }
+            }
+
+            List<string> parts = new List<string>();
+            foreach (var entry in breakdown)
+                parts.Add(entry.Key + "=" + entry.Value);
+
+            int formFields = reader.AcroFields.Fields.Count; //Interactive form fields (check boxes, text) also mean the PDF is not flattened
+            if (formFields > 0)
+                parts.Add("form fields=" + formFields);
+
+            result.Reasons = string.Join("; ", parts);
+
+            int totalToFlatten = result.NonLinkAnnotations + formFields;
+            if (totalToFlatten > 0)
+            {
+                result.IsFlattened = false;
+                result.Log = " - NOT FLATTENED (" + totalToFlatten + " item(s) to flatten): " + result.Reasons + "\n";
+            }
+            else
+            {
+                result.IsFlattened = true;
+                result.Log = " - already flat\n";
+            }
+
+            if (warnings != "")
+                result.Log += warnings;
+
+            return result;
+        }
+
+        public static string FlattenPDF(string filePath, string fileOutputPath) //Flattens one PDF: burns markup annotations and form fields into the pages, links stay clickable
+        {
+            // When output == input, writing directly would truncate the source
+            // while PdfReader is still using it. Write to a temp file first.
+            bool inPlace = string.Equals(
+                Path.GetFullPath(filePath),
+                Path.GetFullPath(fileOutputPath),
+                StringComparison.OrdinalIgnoreCase);
+            string actualOutputPath = fileOutputPath;
+            string tempPath = null;
+            if (inPlace)
+            {
+                string directory = Path.GetDirectoryName(Path.GetFullPath(fileOutputPath));
+                if (string.IsNullOrEmpty(directory))
+                {
+                    directory = Path.GetTempPath();
+                }
+                tempPath = Path.Combine(directory,
+                    Path.GetFileNameWithoutExtension(filePath) + ".tmp-" + Guid.NewGuid().ToString("N") + Path.GetExtension(filePath));
+                actualOutputPath = tempPath;
+            }
+
+            PdfReader reader = null;
+            FileStream outputStream = null;
+            PdfStamper stamper = null;
+            try
+            {
+                reader = new PdfReader(filePath);
+
+                FlattenCheckResult check = CheckFlattening(reader); //Find out if anything needs flattening
+                if (check.IsFlattened)
+                {
+                    try { reader.Close(); } catch { }
+                    try { ((IDisposable)reader).Dispose(); } catch { }
+                    reader = null;
+                    return " - already flat, not written"; //Matches LinkReplacer: files without changes are not written
+                }
+
+                outputStream = new FileStream(actualOutputPath, FileMode.Create);
+                stamper = new PdfStamper(reader, outputStream);
+
+                stamper.FormFlattening = true; //Bakes interactive form fields into the page content
+                stamper.AnnotationFlattening = true; //Burns markup annotations into the page content; link annotations are preserved
+
+                stamper.Close(); //The flattening happens when the stamper closes
+                stamper = null;
+
+                try { reader.Close(); } catch { }
+                try { ((IDisposable)reader).Dispose(); } catch { }
+                reader = null;
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                outputStream = null;
+
+                if (inPlace)
+                {
+                    // Atomically replace the original only after the temp file is fully written.
+                    File.Copy(actualOutputPath, filePath, true);
+                    File.Delete(actualOutputPath);
+                }
+
+                return " - flattened (" + check.Reasons + ")";
+            }
+            catch
+            {
+                try { if (stamper != null) stamper.Dispose(); } catch { }
+                try { if (outputStream != null) outputStream.Dispose(); } catch { }
+                try { if (reader != null) reader.Close(); } catch { }
+                try { if (reader is IDisposable rd) rd.Dispose(); } catch { }
+                // Remove the partial/temp output; never touch the original on failure.
+                try { if (actualOutputPath != null && File.Exists(actualOutputPath)) File.Delete(actualOutputPath); } catch { }
+                throw;
+            }
         }
     }
 }

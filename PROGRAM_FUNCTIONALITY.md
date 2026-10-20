@@ -5,8 +5,10 @@
 LinkReplacer-DNATool is a Windows desktop utility built with C# and Windows Forms. Its purpose is to inspect PDF documents, identify hyperlinks embedded inside them, and perform one of three main tasks:
 
 - replace or modify hyperlink URLs inside PDFs,
-- extract asset identifiers from certain PDF links for DNA reporting, or
-- export all discovered hyperlinks from selected PDFs to CSV output.
+- extract asset identifiers from certain PDF links for DNA reporting,
+- export all discovered hyperlinks from selected PDFs to CSV output,
+- list PDFs that are not flattened (still carry markup annotations) in a CSV report, or
+- flatten PDFs in batches by burning markup annotations and form fields into the pages.
 
 The tool is designed for environments where PDFs contain clickable links to SharePoint or other web resources, and where users need to bulk-edit or audit those links.
 
@@ -50,6 +52,33 @@ This makes it possible to generate a structured inventory of assets referenced b
 
 The program can also export every hyperlink it detects in selected PDFs to a CSV file. Each extracted link is stored with the corresponding file name so the user can review the complete set of links used in a document batch.
 
+### 4. Lists PDFs that are not flattened
+
+A PDF is considered "not flattened" when any of its pages contains an annotation other than a link (for example `FreeText`, `Square`, `Line` or `Stamp` annotations left behind by on-screen markups) or when it still contains interactive AcroForm fields. The Flatten check scans every selected PDF and reports:
+
+- whether each file is already flat or not flattened,
+- a breakdown of what needs flattening, for example `FreeText=16; Line=10; Square=33; Stamp=1`,
+- the number of annotations to flatten and the total annotation count.
+
+The result of the unflattened PDFs is written to `Unflattened PDFs.csv` in the output folder with the columns:
+
+- file name,
+- reason breakdown,
+- non-link annotation count,
+- total annotation count.
+
+Files that are already flat are not listed.
+
+### 5. Flattens PDFs in batches
+
+The flatten operation writes a flattened copy of each selected PDF to the output folder:
+
+- Markup annotations are burned into the page content, so the PDF renders the same everywhere and can no longer be edited in markup editors.
+- Interactive form fields are baked into the page content (form flattening).
+- Link annotations are preserved, so hyperlinks keep working after flattening.
+- Files that are already flat are skipped; no duplicate output is written and the log records that the file was left as is.
+- Original PDFs are never modified; flattened copies go to the selected output folder.
+
 ---
 
 ## Supported input sources
@@ -82,6 +111,13 @@ Users can point the program at a folder containing PDFs. The program can process
 ## User interface behavior
 
 The application is arranged around a main form with several functional areas:
+
+### PDF Flatten tab
+
+The third tab holds the two flatten actions:
+
+- Check Unflattened: scans the selected PDFs and writes the `Unflattened PDFs.csv` report,
+- Flatten PDFs: writes flattened copies of the selected PDFs to the output folder.
 
 ### Source selection
 
@@ -124,7 +160,9 @@ The tool shows a progress bar and a log window while processing files. Each proc
 3. The user chooses an action:
    - replace links,
    - generate DNA asset CSV,
-   - or export hyperlinks.
+   - export hyperlinks,
+   - list unflattened PDFs,
+   - or flatten the PDFs.
 4. The program iterates through each PDF.
 5. It inspects the PDF annotations and identifies hyperlink entries.
 6. It performs the selected operation and writes output files.
@@ -189,6 +227,8 @@ In short, LinkReplacer-DNATool is a batch-processing utility for:
 
 - editing links inside PDF files,
 - extracting asset references from PDF links,
-- and exporting hyperlink inventories for documentation or auditing.
+- exporting hyperlink inventories for documentation or auditing,
+- reporting which PDFs still need flattening,
+- and flattening PDFs in bulk without touching the originals.
 
 It is especially useful in document-heavy environments where PDF hyperlinks need to be corrected, audited, or transformed in bulk.
